@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>map</title>
+<style>
+.on{
+  color: #F00;
+}
+#items{
+  position: absolute;
+  top: 0;
+  left: 600px;
+}
+#map{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 600px;
+  height: 600px;
+  background: #000;
+}
+#map span{
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: url(tank.png) no-repeat;
+}
+#map .brick{
+  background-position: -612px -170px;
+}
+#map .iron{
+  background-position: 0 -204px;
+}
+#map .home{
+  width: 32px;
+  height: 32px;
+  background-position: -646px -170px;
+}
+#map .enemy{
+  width: 32px;
+  height: 32px;
+  background-position: 0 0;
+}
+#map .player{
+  width: 32px;
+  height: 32px;
+  background-position: 0 0;
+  opacity: 0.5;
+}
+#input{
+  position:absolute;
+  left:0;
+  top:600px;
+}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<textarea id="input"></textarea>
+<ul id="items">
+  <li id="brick">砖头</li>
+  <li id="iron">铁墙</li>
+  <li id="home">老家</li>
+  <li id="enemy">敌军</li>
+  <li id="player">玩家</li>
+  <li id="button">确定</li>
+  <li id="parse">解析</li>
+  <li id="top">↑</li>
+  <li id="right">→</li>
+  <li id="bottom">↓</li>
+  <li id="left">←</li>
+</ul>
+<script>
+let map = document.querySelector('#map');
+let items = document.querySelector('#items');
+let brick = document.querySelector('#brick');
+let iron = document.querySelector('#iron');
+let home = document.querySelector('#home');
+let enemy = document.querySelector('#enemy');
+let player = document.querySelector('#player');
+let button = document.querySelector('#button');
+let input = document.querySelector('#input');
+let parse = document.querySelector('#parse');
+let top1 = document.querySelector('#top');
+let right = document.querySelector('#right');
+let bottom = document.querySelector('#bottom');
+let left = document.querySelector('#left');
+
+let type;
+function setType(t, node) {
+  if(type !== t) {
+    type = t;
+    let c = items.querySelector('.on');
+    c && c.classList.remove('on');
+    node.classList.add('on');
+  }
+}
+brick.addEventListener('click', function() {
+  setType('brick', this);
+});
+iron.addEventListener('click', function() {
+  setType('iron', this);
+});
+home.addEventListener('click', function() {
+  setType('home', this);
+});
+enemy.addEventListener('click', function() {
+  setType('enemy', this);
+});
+player.addEventListener('click', function() {
+  setType('player', this);
+});
+
+let hash = {
+  brick: {},
+  iron: {},
+  home: {},
+  enemy: {},
+  player: {},
+};
+map.addEventListener('click', function(e) {
+  if(!type) {
+    return;
+  }
+  let { pageX, pageY } = e;
+  let x = Math.floor(pageX / 16);
+  let y = Math.floor(pageY / 16);
+  let k = x + ',' + y;
+  let node;
+  if(hash.brick.hasOwnProperty(k)) {
+    node = hash.brick[k];
+    node.parentNode.removeChild(node);
+    delete hash.brick[k];
+  }
+  else if(hash.iron.hasOwnProperty(k)) {
+    node = hash.iron[k];
+    node.parentNode.removeChild(node);
+    delete hash.iron[k];
+  }
+  else if(hash.home.hasOwnProperty(k)) {
+    node = hash.home[k];
+    node.parentNode.removeChild(node);
+    delete hash.home[k];
+  }
+  else if(hash.enemy.hasOwnProperty(k)) {
+    node = hash.enemy[k];
+    node.parentNode.removeChild(node);
+    delete hash.enemy[k];
+  }
+  else if(hash.player.hasOwnProperty(k)) {
+    node = hash.player[k];
+    node.parentNode.removeChild(node);
+    delete hash.player[k];
+  }
+  else {
+    node = document.createElement('span');
+    node.className = type;
+    node.style.left = x * 16 + 'px';
+    node.style.top = y * 16 + 'px';
+    map.appendChild(node);
+    hash[type][k] = node;
+  }
+});
+
+button.addEventListener('click', function() {
+  let res = {
+    brick: [],
+    iron: [],
+    home: [],
+    enemy: [],
+  };
+  let minX = 100, minY = 100, maxX = 0, maxY = 0;
+  Object.keys(hash.brick).forEach(k => {
+    let [x, y] = k.split(',');
+    x = parseInt(x);
+    y = parseInt(y);
+    res.brick.push([x, y]);
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+  });
+  Object.keys(hash.iron).forEach(k => {
+    let [x, y] = k.split(',');
+    x = parseInt(x);
+    y = parseInt(y);
+    res.iron.push([x, y]);
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+  });
+  Object.keys(hash.home).forEach(k => {
+    let [x, y] = k.split(',');
+    x = parseInt(x);
+    y = parseInt(y);
+    res.home.push([x, y]);
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+  });
+  Object.keys(hash.enemy).forEach(k => {
+    let [x, y] = k.split(',');
+    x = parseInt(x);
+    y = parseInt(y);
+    res.enemy.push([x, y]);
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+  });
+  Object.keys(hash.player).forEach(k => {
+    let [x, y] = k.split(',');
+    x = parseInt(x);
+    y = parseInt(y);
+    res.player.push([x, y]);
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+  });
+  res.box = [minX, minY, maxX, maxY];
+  console.log(JSON.stringify(res));
+});
+
+parse.addEventListener('click', function() {
+  let json = JSON.parse(input.value);
+  console.log(json);
+  if(Array.isArray(json)) {
+    json = {
+      brick: json,
+    };
+  }
+  (json.brick || []).forEach(item => {
+    let [x, y] = item;
+    let k = x + ',' + y;
+    let node = document.createElement('span');
+    node.className = 'brick';
+    node.style.left = x * 16 + 'px';
+    node.style.top = y * 16 + 'px';
+    map.appendChild(node);
+    hash.brick[k] = node;
+  });
+  (json.iron || []).forEach(item => {
+    let [x, y] = item;
+    let k = x + ',' + y;
+    let node = document.createElement('span');
+    node.className = 'iron';
+    node.style.left = x * 16 + 'px';
+    node.style.top = y * 16 + 'px';
+    map.appendChild(node);
+    hash.iron[k] = node;
+  });
+  (json.home || []).forEach(item => {
+    let [x, y] = item;
+    let k = x + ',' + y;
+    let node = document.createElement('span');
+    node.className = 'home';
+    node.style.left = x * 16 + 'px';
+    node.style.top = y * 16 + 'px';
+    map.appendChild(node);
+    hash.home[k] = node;
+  });
+  (json.enemy || []).forEach(item => {
+    let [x, y] = item;
+    let k = x + ',' + y;
+    let node = document.createElement('span');
+    node.className = 'enemy';
+    node.style.left = x * 16 + 'px';
+    node.style.top = y * 16 + 'px';
+    map.appendChild(node);
+    hash.home[k] = node;
+  });
+  (json.player || []).forEach(item => {
+    let [x, y] = item;
+    let k = x + ',' + y;
+    let node = document.createElement('span');
+    node.className = 'player';
+    node.style.left = x * 16 + 'px';
+    node.style.top = y * 16 + 'px';
+    map.appendChild(node);
+    hash.player[k] = node;
+  });
+});
+
+function move(direction) {
+  let n = {};
+  Object.keys(hash.brick).forEach(k => {
+    let node = hash.brick[k];
+    let [x, y] = k.split(',');
+    if(direction === 0) {
+      y--;
+    }
+    else if(direction === 1) {
+      x++;
+    }
+    else if(direction === 2) {
+      y++;
+    }
+    else if(direction === 3) {
+      y--;
+    }
+    node.style.top = y * 16 + 'px';
+    k = x + ',' + y;
+    n[k] = node;
+  });
+  hash.brick = n;
+  n = {};
+  Object.keys(hash.iron).forEach(k => {
+    let node = hash.iron[k];
+    let [x, y] = k.split(',');
+    y--;
+    node.style.top = y * 16 + 'px';
+    k = x + ',' + y;
+    n[k] = node;
+  });
+  hash.iron = n;
+  n = {};
+  Object.keys(hash.home).forEach(k => {
+    let node = hash.home[k];
+    let [x, y] = k.split(',');
+    y--;
+    node.style.top = y * 16 + 'px';
+    k = x + ',' + y;
+    n[k] = node;
+  });
+  n = {};
+  Object.keys(hash.enemy).forEach(k => {
+    let node = hash.enemy[k];
+    let [x, y] = k.split(',');
+    y--;
+    node.style.top = y * 16 + 'px';
+    k = x + ',' + y;
+    n[k] = node;
+  });
+  hash.enemy = n;
+  n = {};
+  Object.keys(hash.player).forEach(k => {
+    let node = hash.player[k];
+    let [x, y] = k.split(',');
+    y--;
+    node.style.top = y * 16 + 'px';
+    k = x + ',' + y;
+    n[k] = node;
+  });
+  hash.player = n;
+}
+
+top1.addEventListener('click', function() {
+  move(0);
+});
+
+right.addEventListener('click', function() {
+  move(1);
+});
+
+bottom.addEventListener('click', function() {
+  move(2);
+});
+
+left.addEventListener('click', function() {
+  move(3);
+});
+</script>
+</body>
+</html>
