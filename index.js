@@ -183,6 +183,7 @@
   eventBus.gameState = eventBus.BEFORE_MENU;
   eventBus.brick = karas$1.util.clone(data[0].brick);
   eventBus.iron = karas$1.util.clone(data[0].iron);
+  eventBus.box = karas$1.util.clone(data[0].box);
 
   var Menu = /*#__PURE__*/function (_karas$Component) {
     _inherits(Menu, _karas$Component);
@@ -752,10 +753,50 @@
     return Fade;
   }(karas$1.Component);
 
-  function checkMove(position, direction, list) {
+  var movePx = 2;
+
+  function checkBox(position, direction, box) {
     var _position = _slicedToArray(position, 2),
         tx1 = _position[0],
         ty1 = _position[1];
+
+    var tx2 = tx1 + 32;
+    var ty2 = ty1 + 32;
+
+    var _box = _slicedToArray(box, 4),
+        x1 = _box[0],
+        y1 = _box[1],
+        x2 = _box[2],
+        y2 = _box[3];
+
+    x1 *= 16;
+    y1 *= 16;
+    x2 *= 16;
+    y2 *= 16;
+
+    if (direction === 0) {
+      if (y1 === ty1) {
+        return true;
+      }
+    } else if (direction === 1) {
+      if (x2 === tx2) {
+        return true;
+      }
+    } else if (direction === 2) {
+      if (y2 === ty2) {
+        return true;
+      }
+    } else if (direction === 3) {
+      if (x1 === tx1) {
+        return true;
+      }
+    }
+  }
+
+  function checkMove(position, direction, list) {
+    var _position2 = _slicedToArray(position, 2),
+        tx1 = _position2[0],
+        ty1 = _position2[1];
 
     var tx2 = tx1 + 32;
     var ty2 = ty1 + 32;
@@ -825,13 +866,28 @@
 
           _this2.state.list.forEach(function (item, i) {
             var player = _this2.ref['player' + i];
-            player.children[0].animate([{
+            var shield = _this2.ref['shield' + i];
+            var fadeIn = player.animate([{
+              opacity: 1
+            }, {
+              opacity: 0.75
+            }], {
+              duration: 100,
+              iterations: 32,
+              direction: 'alternate',
+              easing: 'steps(2)'
+            });
+            fadeIn.on('finish', function () {
+              player.removeAnimate(fadeIn);
+            });
+            shield.animate([{
               backgroundPosition: '-442 -238'
             }, {
               backgroundPosition: '-510 -238'
             }], {
               duration: 100,
-              iterations: 16,
+              iterations: 32,
+              direction: 'alternate',
               easing: 'steps(2)'
             });
           });
@@ -840,13 +896,14 @@
     }, {
       key: "move",
       value: function move(index, direction) {
-        var player = this.ref['player' + index]; // 播放坦克移动本身帧动画
+        var player = this.ref['player' + index];
+        var tank = this.ref['tank' + index]; // 播放坦克移动本身帧动画
 
         var lastD = this['playerD' + index];
 
         if (lastD !== direction) {
           this['playerD' + index] = direction;
-          player.clearAnimate();
+          tank.clearAnimate();
           var frame = [];
 
           if (direction === 0) {
@@ -875,19 +932,24 @@
             }];
           }
 
-          player.animate(frame, {
+          tank.animate(frame, {
             duration: 100,
             iterations: Infinity,
             easing: 'steps(1)',
-            direction: 'alternate-reverse'
+            direction: 'alternate'
           });
+        } else {
+          return;
         } // 检查是否被挡住
 
 
         var position = this.state.position[index];
 
+        if (checkBox(position, direction, eventBus.box)) {
+          return;
+        }
+
         if (checkMove(position, direction, eventBus.brick)) {
-          console.log(1);
           return;
         }
 
@@ -897,13 +959,21 @@
 
 
         var cb = this['ma' + index];
+        var frameDrop = 0;
         karas$1.animate.frame.offFrame(cb);
 
         cb = this['ma' + index] = function () {
-          console.log(2, direction);
+          if (frameDrop++ < 1) {
+            return;
+          }
+
+          frameDrop = 0;
+
+          if (checkBox(position, direction, eventBus.box)) {
+            return;
+          }
 
           if (checkMove(position, direction, eventBus.brick)) {
-            console.log(3);
             return;
           }
 
@@ -912,24 +982,24 @@
           }
 
           if (direction === 0) {
-            position[1]--;
+            position[1] -= movePx;
             player.updateStyle({
-              translateY: --player.getComputedStyle('translateY').translateY
+              translateY: player.getComputedStyle('translateY').translateY - movePx
             });
           } else if (direction === 1) {
-            position[0]++;
+            position[0] += movePx;
             player.updateStyle({
-              translateX: ++player.getComputedStyle('translateX').translateX
+              translateX: player.getComputedStyle('translateX').translateX + movePx
             });
           } else if (direction === 2) {
-            position[1]++;
+            position[1] += movePx;
             player.updateStyle({
-              translateY: ++player.getComputedStyle('translateY').translateY
+              translateY: player.getComputedStyle('translateY').translateY + movePx
             });
           } else if (direction === 3) {
-            position[0]--;
+            position[0] -= movePx;
             player.updateStyle({
-              translateX: --player.getComputedStyle('translateX').translateX
+              translateX: player.getComputedStyle('translateX').translateX - movePx
             });
           }
         };
@@ -940,7 +1010,8 @@
       key: "stop",
       value: function stop(index) {
         var player = this.ref['player' + index];
-        player.clearAnimate();
+        var tank = this.ref['tank' + index];
+        tank.animationList[0].pause();
         var cb = this['ma' + index];
         karas$1.animate.frame.offFrame(cb);
         var lastD = this['playerD' + index];
@@ -988,10 +1059,20 @@
               width: 32,
               height: 32,
               translateX: item[0] * 16,
-              translateY: item[1] * 16,
-              background: "url(tank.png) no-repeat 0 ".concat(y)
+              translateY: item[1] * 16
             }
           }, karas$1.createElement("span", {
+            ref: 'tank' + i,
+            style: {
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              width: '100%',
+              height: '100%',
+              background: "url(tank.png) no-repeat 0 ".concat(y)
+            }
+          }), karas$1.createElement("span", {
+            ref: 'shield' + i,
             style: {
               position: 'absolute',
               left: 0,
