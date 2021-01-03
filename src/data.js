@@ -7,4 +7,5 @@ export default {
     "enemy": [[17, 2], [5, 2], [29, 2]],
     "box": [5, 2, 31, 28]
   },
+  current: null,
 };

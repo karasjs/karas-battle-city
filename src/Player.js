@@ -72,10 +72,12 @@ class Player extends karas.Component {
   constructor(props) {
     super(props);
     this.state = {
-      list: data[0].player,
-      position: data[0].player.map(item => {
-        return item.map(n => n * 16);
-      }),
+      list: [],
+      position: [],
+      // list: data[0].player,
+      // position: data[0].player.map(item => {
+      //   return item.map(n => n * 16);
+      // }),
     };
   }
 
@@ -182,13 +184,13 @@ class Player extends karas.Component {
     }
     // 检查是否被挡住
     let position = this.state.position[index];
-    if(checkBox(position, direction, eventBus.box)) {
+    if(checkBox(position, direction, data.current.box)) {
       return;
     }
-    if(checkMove(position, direction, eventBus.brick)) {
+    if(checkMove(position, direction, data.current.brick)) {
       return;
     }
-    if(checkMove(position, direction, eventBus.iron)) {
+    if(checkMove(position, direction, data.current.iron)) {
       return;
     }
     // 坦克坐标移动
@@ -200,13 +202,13 @@ class Player extends karas.Component {
         return;
       }
       frameDrop = 0;
-      if(checkBox(position, direction, eventBus.box)) {
+      if(checkBox(position, direction, data.current.box)) {
         return;
       }
-      if(checkMove(position, direction, eventBus.brick)) {
+      if(checkMove(position, direction, data.current.brick)) {
         return;
       }
-      if(checkMove(position, direction, eventBus.iron)) {
+      if(checkMove(position, direction, data.current.iron)) {
         return;
       }
       if(direction === 0) {

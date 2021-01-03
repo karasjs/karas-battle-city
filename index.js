@@ -171,7 +171,8 @@
       "player": [[13, 26], [21, 26]],
       "enemy": [[17, 2], [5, 2], [29, 2]],
       "box": [5, 2, 31, 28]
-    }
+    },
+    current: null
   };
 
   var eventBus = new karas$1.Event();
@@ -181,9 +182,6 @@
   eventBus.WILL_GAME = 3;
   eventBus.GAMEING = 4;
   eventBus.gameState = eventBus.BEFORE_MENU;
-  eventBus.brick = karas$1.util.clone(data[0].brick);
-  eventBus.iron = karas$1.util.clone(data[0].iron);
-  eventBus.box = karas$1.util.clone(data[0].box);
 
   var Menu = /*#__PURE__*/function (_karas$Component) {
     _inherits(Menu, _karas$Component);
@@ -843,12 +841,12 @@
 
       _this = _super.call(this, props);
       _this.state = {
-        list: data[0].player,
-        position: data[0].player.map(function (item) {
-          return item.map(function (n) {
-            return n * 16;
-          });
-        })
+        list: [],
+        position: [] // list: data[0].player,
+        // position: data[0].player.map(item => {
+        //   return item.map(n => n * 16);
+        // }),
+
       };
       return _this;
     }
@@ -945,15 +943,15 @@
 
         var position = this.state.position[index];
 
-        if (checkBox(position, direction, eventBus.box)) {
+        if (checkBox(position, direction, data.current.box)) {
           return;
         }
 
-        if (checkMove(position, direction, eventBus.brick)) {
+        if (checkMove(position, direction, data.current.brick)) {
           return;
         }
 
-        if (checkMove(position, direction, eventBus.iron)) {
+        if (checkMove(position, direction, data.current.iron)) {
           return;
         } // 坦克坐标移动
 
@@ -969,15 +967,15 @@
 
           frameDrop = 0;
 
-          if (checkBox(position, direction, eventBus.box)) {
+          if (checkBox(position, direction, data.current.box)) {
             return;
           }
 
-          if (checkMove(position, direction, eventBus.brick)) {
+          if (checkMove(position, direction, data.current.brick)) {
             return;
           }
 
-          if (checkMove(position, direction, eventBus.iron)) {
+          if (checkMove(position, direction, data.current.iron)) {
             return;
           }
 
@@ -1115,7 +1113,16 @@
         root.ref.menu.altPlayerNum();
       } else if (e.keyCode === 74 || e.keyCode === 13) {
         eventBus.gameState = eventBus.BEFORE_GAME;
+        var currentData = data.current = karas.util.clone(data[0]);
         root.ref.stageNum.show(1);
+        root.ref.player.setState({
+          list: currentData.player,
+          position: currentData.player.map(function (item) {
+            return item.map(function (n) {
+              return n * 16;
+            });
+          })
+        });
       }
     } else if (eventBus.gameState === eventBus.GAMEING) {
       if (keyCode === 87) {

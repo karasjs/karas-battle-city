@@ -11,8 +11,4 @@ eventBus.GAMEING = 4;
 
 eventBus.gameState = eventBus.BEFORE_MENU;
 
-eventBus.brick = karas.util.clone(data[0].brick);
-eventBus.iron = karas.util.clone(data[0].iron);
-eventBus.box = karas.util.clone(data[0].box);
-
 export default eventBus;
