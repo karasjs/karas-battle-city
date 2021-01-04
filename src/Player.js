@@ -2,7 +2,7 @@ import karas from 'karas';
 import data from './data';
 import eventBus from './eventBus';
 
-const movePx = 2;
+const MOVE_PX = 2;
 
 function checkBox(position, direction, box) {
   let [tx1, ty1] = position;
@@ -40,7 +40,10 @@ function checkMove(position, direction, list) {
   let tx2 = tx1 + 32;
   let ty2 = ty1 + 32;
   for(let i = 0, len = list.length; i < len; i++) {
-    let [x1, y1] = list[i];
+    let [x1, y1, disappear] = list[i];
+    if(disappear) {
+      continue;
+    }
     x1 *= 16;
     y1 *= 16;
     let x2 = x1 + 16;
@@ -92,10 +95,10 @@ class Player extends karas.Component {
         let shield = this.ref['shield' + i];
         let fadeIn = player.animate([
           {
-            opacity: 1,
+            opacity: 0.85,
           },
           {
-            opacity: 0.75,
+            opacity: 0.7,
           },
         ], {
           duration: 100,
@@ -127,9 +130,9 @@ class Player extends karas.Component {
     let player = this.ref['player' + index];
     let tank = this.ref['tank' + index];
     // 播放坦克移动本身帧动画
-    let lastD = this['playerD' + index];
-    if(lastD !== direction) {
-      this['playerD' + index] = direction;
+    let currentD = this['playerCurrentD' + index];
+    if(currentD !== direction) {
+      this['playerCurrentD' + index] = direction;
       tank.clearAnimate();
       let frame = [];
       if(direction === 0) {
@@ -182,6 +185,7 @@ class Player extends karas.Component {
     else {
       return;
     }
+    this['playerLastD' + index] = direction;
     // 检查是否被挡住
     let position = this.state.position[index];
     if(checkBox(position, direction, data.current.box)) {
@@ -212,27 +216,27 @@ class Player extends karas.Component {
         return;
       }
       if(direction === 0) {
-        position[1] -= movePx;
+        position[1] -= MOVE_PX;
         player.updateStyle({
-          translateY: player.getComputedStyle('translateY').translateY - movePx,
+          translateY: player.getComputedStyle('translateY').translateY - MOVE_PX,
         });
       }
       else if(direction === 1) {
-        position[0] += movePx;
+        position[0] += MOVE_PX;
         player.updateStyle({
-          translateX: player.getComputedStyle('translateX').translateX + movePx,
+          translateX: player.getComputedStyle('translateX').translateX + MOVE_PX,
         });
       }
       else if(direction === 2) {
-        position[1] += movePx;
+        position[1] += MOVE_PX;
         player.updateStyle({
-          translateY: player.getComputedStyle('translateY').translateY + movePx,
+          translateY: player.getComputedStyle('translateY').translateY + MOVE_PX,
         });
       }
       else if(direction === 3) {
-        position[0] -= movePx;
+        position[0] -= MOVE_PX;
         player.updateStyle({
-          translateX: player.getComputedStyle('translateX').translateX - movePx,
+          translateX: player.getComputedStyle('translateX').translateX - MOVE_PX,
         });
       }
     };
@@ -245,28 +249,36 @@ class Player extends karas.Component {
     tank.animationList[0].pause();
     let cb = this['ma' + index];
     karas.animate.frame.offFrame(cb);
-    let lastD = this['playerD' + index];
-    if(lastD === 0) {
+    let currentD = this['playerCurrentD' + index];
+    if(currentD === 0) {
       player.updateStyle({
         backgroundPositionX: 0,
       });
     }
-    else if(lastD === 1) {
+    else if(currentD === 1) {
       player.updateStyle({
         backgroundPositionX: -68,
       });
     }
-    else if(lastD === 2) {
+    else if(currentD === 2) {
       player.updateStyle({
         backgroundPositionX: -136,
       });
     }
-    else if(lastD === 3) {
+    else if(currentD === 3) {
       player.updateStyle({
         backgroundPositionX: -204,
       });
     }
-    this['playerD' + index] = null;
+    this['playerCurrentD' + index] = null;
+  }
+
+  getPosition(index) {
+    return this.state.position[index];
+  }
+
+  getDirection(index) {
+    return this['playerLastD' + index] || 0;
   }
 
   render() {

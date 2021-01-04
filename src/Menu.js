@@ -16,7 +16,7 @@ class Menu extends karas.Component {
         translateY: '-50%',
       }
     ], {
-      duration: 200,
+      duration: 1200,
       fill: 'forwards',
     });
     let tankAnimation;

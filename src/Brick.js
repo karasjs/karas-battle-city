@@ -6,7 +6,7 @@ class Brick extends karas.Component {
   constructor(props) {
     super(props);
     this.state = {
-      list: data[0].brick,
+      list: [],
     };
   }
 
@@ -17,11 +17,21 @@ class Brick extends karas.Component {
         visibility: 'visible',
       });
     });
-  }
-
-  updateList(list) {
-    this.setState({
-      list,
+    eventBus.on(eventBus.HIT_BRICK, (id, x, y, data) => {
+      let hash = {};
+      data.forEach(item => {
+        hash[item[0]] = hash[item[0]] || [];
+        hash[item[0]].push(item[1]);
+      });
+      for(let list = this.state.list, i = 0, len = list.length; i < len; i++) {
+        let item = list[i];
+        if(!item[2] && hash.hasOwnProperty(item[0]) && hash[item[0]].indexOf(item[1]) > -1) {
+          item.push(true);
+          this.ref[item[0] + ',' + item[1]].updateStyle({
+            display: 'none',
+          });
+        }
+      }
     });
   }
 
@@ -39,14 +49,15 @@ class Brick extends karas.Component {
           let [x, y] = item;
           let left = x * 16;
           let top = y * 16;
-          return <span style={{
-            position: 'absolute',
-            left,
-            top,
-            width: 16,
-            height: 16,
-            background: 'url(tank.png) no-repeat -612px -170px',
-          }}/>;
+          return <span ref={x + ',' + y}
+                       style={{
+                         position: 'absolute',
+                         left,
+                         top,
+                         width: 16,
+                         height: 16,
+                         background: 'url(tank.png) no-repeat -612px -170px',
+                       }}/>;
         })
       }
     </div>;

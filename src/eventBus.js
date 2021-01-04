@@ -11,4 +11,8 @@ eventBus.GAMEING = 4;
 
 eventBus.gameState = eventBus.BEFORE_MENU;
 
+eventBus.HIT_BOX = 'HIT_BOX';
+eventBus.HIT_BRICK = 'HIT_BRICK';
+eventBus.HIT_IRON = 'HIT_IRON';
+
 export default eventBus;

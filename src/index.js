@@ -5,6 +5,8 @@ import Brick from './Brick';
 import Iron from './Iron';
 import Fade from './Fade';
 import Player from './Player';
+import Bullet from './Bullet';
+import Hit from './Hit';
 import eventBus from './eventBus';
 import data from './data';
 
@@ -13,8 +15,10 @@ let root = karas.render(
     <Box ref="box"/>
     <Brick ref="brick"/>
     <Iron ref="iron"/>
-    <Fade ref="fade"/>
     <Player ref="player"/>
+    <Fade ref="fade"/>
+    <Bullet ref="bullet"/>
+    <Hit ref="hit"/>
     <Menu ref="menu"/>
     <StageNum ref="stageNum"/>
   </canvas>,
@@ -32,6 +36,12 @@ document.addEventListener('keydown', function(e) {
       eventBus.gameState = eventBus.BEFORE_GAME;
       let currentData = data.current = karas.util.clone(data[0]);
       root.ref.stageNum.show(1);
+      root.ref.brick.setState({
+        list: currentData.brick,
+      });
+      root.ref.iron.setState({
+        list: currentData.iron,
+      });
       root.ref.player.setState({
         list: currentData.player,
         position: currentData.player.map(item => {
@@ -52,6 +62,11 @@ document.addEventListener('keydown', function(e) {
     }
     else if(keyCode === 65) {
       root.ref.player.move(0, 3);
+    }
+    else if(keyCode === 74) {
+      let position = root.ref.player.getPosition(0);
+      let direction = root.ref.player.getDirection(0);
+      root.ref.bullet.move(0, position.slice(0), direction);
     }
   }
 });

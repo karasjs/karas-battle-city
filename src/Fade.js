@@ -18,6 +18,7 @@ class Fade extends karas.Component {
         visibility: 'visible',
       });
       this.show(0);
+      this.show(1);
     });
   }
 

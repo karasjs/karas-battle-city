@@ -6,7 +6,7 @@ class Brick extends karas.Component {
   constructor(props) {
     super(props);
     this.state = {
-      list: data[0].iron,
+      list: [],
     };
   }
 
@@ -39,14 +39,15 @@ class Brick extends karas.Component {
           let [x, y] = item;
           let left = x * 16;
           let top = y * 16;
-          return <span style={{
-            position: 'absolute',
-            left,
-            top,
-            width: 16,
-            height: 16,
-            background: 'url(tank.png) no-repeat 0 -204px',
-          }}/>;
+          return <span ref={x + ',' + y}
+                       style={{
+                         position: 'absolute',
+                         left,
+                         top,
+                         width: 16,
+                         height: 16,
+                         background: 'url(tank.png) no-repeat 0 -204px',
+                       }}/>;
         })
       }
     </div>;

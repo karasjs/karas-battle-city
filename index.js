@@ -182,6 +182,9 @@
   eventBus.WILL_GAME = 3;
   eventBus.GAMEING = 4;
   eventBus.gameState = eventBus.BEFORE_MENU;
+  eventBus.HIT_BOX = 'HIT_BOX';
+  eventBus.HIT_BRICK = 'HIT_BRICK';
+  eventBus.HIT_IRON = 'HIT_IRON';
 
   var Menu = /*#__PURE__*/function (_karas$Component) {
     _inherits(Menu, _karas$Component);
@@ -208,7 +211,7 @@
         var animation = sr.animate([{}, {
           translateY: '-50%'
         }], {
-          duration: 200,
+          duration: 1200,
           fill: 'forwards'
         });
         var tankAnimation; // 上移结束显示选择tank
@@ -520,7 +523,7 @@
 
       _this = _super.call(this, props);
       _this.state = {
-        list: data[0].brick
+        list: []
       };
       return _this;
     }
@@ -536,12 +539,24 @@
             visibility: 'visible'
           });
         });
-      }
-    }, {
-      key: "updateList",
-      value: function updateList(list) {
-        this.setState({
-          list: list
+        eventBus.on(eventBus.HIT_BRICK, function (id, x, y, data) {
+          var hash = {};
+          data.forEach(function (item) {
+            hash[item[0]] = hash[item[0]] || [];
+            hash[item[0]].push(item[1]);
+          });
+
+          for (var list = _this2.state.list, i = 0, len = list.length; i < len; i++) {
+            var item = list[i];
+
+            if (!item[2] && hash.hasOwnProperty(item[0]) && hash[item[0]].indexOf(item[1]) > -1) {
+              item.push(true);
+
+              _this2.ref[item[0] + ',' + item[1]].updateStyle({
+                display: 'none'
+              });
+            }
+          }
         });
       }
     }, {
@@ -564,6 +579,7 @@
           var left = x * 16;
           var top = y * 16;
           return karas$1.createElement("span", {
+            ref: x + ',' + y,
             style: {
               position: 'absolute',
               left: left,
@@ -592,7 +608,7 @@
 
       _this = _super.call(this, props);
       _this.state = {
-        list: data[0].iron
+        list: []
       };
       return _this;
     }
@@ -636,6 +652,7 @@
           var left = x * 16;
           var top = y * 16;
           return karas$1.createElement("span", {
+            ref: x + ',' + y,
             style: {
               position: 'absolute',
               left: left,
@@ -682,6 +699,8 @@
           });
 
           _this2.show(0);
+
+          _this2.show(1);
         });
       }
     }, {
@@ -751,7 +770,7 @@
     return Fade;
   }(karas$1.Component);
 
-  var movePx = 2;
+  var MOVE_PX = 2;
 
   function checkBox(position, direction, box) {
     var _position = _slicedToArray(position, 2),
@@ -800,9 +819,14 @@
     var ty2 = ty1 + 32;
 
     for (var i = 0, len = list.length; i < len; i++) {
-      var _list$i = _slicedToArray(list[i], 2),
+      var _list$i = _slicedToArray(list[i], 3),
           x1 = _list$i[0],
-          y1 = _list$i[1];
+          y1 = _list$i[1],
+          disappear = _list$i[2];
+
+      if (disappear) {
+        continue;
+      }
 
       x1 *= 16;
       y1 *= 16;
@@ -866,9 +890,9 @@
             var player = _this2.ref['player' + i];
             var shield = _this2.ref['shield' + i];
             var fadeIn = player.animate([{
-              opacity: 1
+              opacity: 0.85
             }, {
-              opacity: 0.75
+              opacity: 0.7
             }], {
               duration: 100,
               iterations: 32,
@@ -897,10 +921,10 @@
         var player = this.ref['player' + index];
         var tank = this.ref['tank' + index]; // 播放坦克移动本身帧动画
 
-        var lastD = this['playerD' + index];
+        var currentD = this['playerCurrentD' + index];
 
-        if (lastD !== direction) {
-          this['playerD' + index] = direction;
+        if (currentD !== direction) {
+          this['playerCurrentD' + index] = direction;
           tank.clearAnimate();
           var frame = [];
 
@@ -938,8 +962,9 @@
           });
         } else {
           return;
-        } // 检查是否被挡住
+        }
 
+        this['playerLastD' + index] = direction; // 检查是否被挡住
 
         var position = this.state.position[index];
 
@@ -980,24 +1005,24 @@
           }
 
           if (direction === 0) {
-            position[1] -= movePx;
+            position[1] -= MOVE_PX;
             player.updateStyle({
-              translateY: player.getComputedStyle('translateY').translateY - movePx
+              translateY: player.getComputedStyle('translateY').translateY - MOVE_PX
             });
           } else if (direction === 1) {
-            position[0] += movePx;
+            position[0] += MOVE_PX;
             player.updateStyle({
-              translateX: player.getComputedStyle('translateX').translateX + movePx
+              translateX: player.getComputedStyle('translateX').translateX + MOVE_PX
             });
           } else if (direction === 2) {
-            position[1] += movePx;
+            position[1] += MOVE_PX;
             player.updateStyle({
-              translateY: player.getComputedStyle('translateY').translateY + movePx
+              translateY: player.getComputedStyle('translateY').translateY + MOVE_PX
             });
           } else if (direction === 3) {
-            position[0] -= movePx;
+            position[0] -= MOVE_PX;
             player.updateStyle({
-              translateX: player.getComputedStyle('translateX').translateX - movePx
+              translateX: player.getComputedStyle('translateX').translateX - MOVE_PX
             });
           }
         };
@@ -1012,27 +1037,37 @@
         tank.animationList[0].pause();
         var cb = this['ma' + index];
         karas$1.animate.frame.offFrame(cb);
-        var lastD = this['playerD' + index];
+        var currentD = this['playerCurrentD' + index];
 
-        if (lastD === 0) {
+        if (currentD === 0) {
           player.updateStyle({
             backgroundPositionX: 0
           });
-        } else if (lastD === 1) {
+        } else if (currentD === 1) {
           player.updateStyle({
             backgroundPositionX: -68
           });
-        } else if (lastD === 2) {
+        } else if (currentD === 2) {
           player.updateStyle({
             backgroundPositionX: -136
           });
-        } else if (lastD === 3) {
+        } else if (currentD === 3) {
           player.updateStyle({
             backgroundPositionX: -204
           });
         }
 
-        this['playerD' + index] = null;
+        this['playerCurrentD' + index] = null;
+      }
+    }, {
+      key: "getPosition",
+      value: function getPosition(index) {
+        return this.state.position[index];
+      }
+    }, {
+      key: "getDirection",
+      value: function getDirection(index) {
+        return this['playerLastD' + index] || 0;
       }
     }, {
       key: "render",
@@ -1087,6 +1122,389 @@
     return Player;
   }(karas$1.Component);
 
+  function checkBox$1(position, direction, dx, dy, box) {
+    var _position = _slicedToArray(position, 2),
+        x = _position[0],
+        y = _position[1];
+
+    x += dx;
+    y += dy;
+
+    var _box = _slicedToArray(box, 4),
+        x1 = _box[0],
+        y1 = _box[1],
+        x2 = _box[2],
+        y2 = _box[3];
+
+    x1 *= 16;
+    y1 *= 16;
+    x2 *= 16;
+    y2 *= 16;
+
+    if (direction === 0) {
+      if (y - 4 <= y1) {
+        return true;
+      }
+    } else if (direction === 1) {
+      if (x + 32 + 4 >= x2) {
+        return true;
+      }
+    } else if (direction === 2) {
+      if (y + 32 + 4 >= y2) {
+        return true;
+      }
+    } else if (direction === 3) {
+      if (x - 4 <= x1) {
+        return true;
+      }
+    }
+  }
+
+  function checkHit(position, direction, dx, dy, list) {
+    var _position2 = _slicedToArray(position, 2),
+        x = _position2[0],
+        y = _position2[1];
+
+    x += dx;
+    y += dy;
+    var res = [];
+
+    for (var i = 0, len = list.length; i < len; i++) {
+      var _list$i = _slicedToArray(list[i], 3),
+          x0 = _list$i[0],
+          y0 = _list$i[1],
+          disappear = _list$i[2];
+
+      if (disappear) {
+        continue;
+      }
+
+      var x1 = x0 * 16;
+      var y1 = y0 * 16;
+      var x2 = x1 + 16;
+      var y2 = y1 + 16;
+
+      if (direction === 0) {
+        if (y - 4 <= y2 && y + 4 >= y1 && x + 20 >= x1 && x + 12 <= x2) {
+          res.push([x0, y0, x1, y1, x2, y2]);
+        }
+      } else if (direction === 1) {
+        if (x + 36 >= x1 && x + 28 <= x2 && y + 20 >= y1 && y + 12 <= y2) {
+          res.push([x0, y0, x1, y1, x2, y2]);
+        }
+      } else if (direction === 2) {
+        if (y + 36 >= y1 && y + 28 <= y2 && x + 20 >= x1 && x + 12 <= x2) {
+          res.push([x0, y0, x1, y1, x2, y2]);
+        }
+      } else if (direction === 3) {
+        if (x - 4 <= x2 && x + 4 >= x1 && y + 20 >= y1 && y + 12 <= y2) {
+          res.push([x0, y0, x1, y1, x2, y2]);
+        }
+      }
+    }
+
+    if (res.length) {
+      return res;
+    }
+  }
+
+  function emitHit(node, id, direction, dx, dy, type, data) {
+    var _node$getComputedStyl = node.getComputedStyle(),
+        left = _node$getComputedStyl.left,
+        top = _node$getComputedStyl.top;
+
+    var x = left + dx;
+    var y = top + dy;
+
+    if (direction === 0) {
+      x += 4;
+    } else if (direction === 1) {
+      x += 8;
+      y += 4;
+    } else if (direction === 2) {
+      x += 4;
+      y += 8;
+    } else if (direction === 3) {
+      y += 4;
+    }
+
+    eventBus.emit(type, id, x, y, data);
+  }
+
+  var uuid = 0;
+  var MOVE_PX$1 = 4;
+
+  var Bullet = /*#__PURE__*/function (_karas$Component) {
+    _inherits(Bullet, _karas$Component);
+
+    var _super = _createSuper(Bullet);
+
+    function Bullet(props) {
+      var _this;
+
+      _classCallCheck(this, Bullet);
+
+      _this = _super.call(this, props);
+      _this.state = {
+        show: false,
+        hash: {}
+      };
+      return _this;
+    }
+
+    _createClass(Bullet, [{
+      key: "componentDidMount",
+      value: function componentDidMount() {
+        var _this2 = this;
+
+        eventBus.on(eventBus.GAMEING, function () {
+          _this2.state.show = true;
+
+          _this2.updateStyle({
+            visibility: 'visible'
+          });
+        });
+      }
+    }, {
+      key: "move",
+      value: function move(index, position, direction) {
+        var _this3 = this;
+
+        var id = uuid++;
+        var hash = this.state.hash;
+        var d = {
+          index: index,
+          position: position,
+          direction: direction,
+          x: 0,
+          y: 0
+        };
+        hash[id] = d;
+        this.setState({
+          hash: hash
+        }, function () {
+          var frame = function frame() {
+            var node = _this3.ref[id];
+
+            if (direction === 0) {
+              d.y -= MOVE_PX$1;
+              node.updateStyle({
+                translateY: d.y
+              });
+            } else if (direction === 1) {
+              d.x += MOVE_PX$1;
+              node.updateStyle({
+                translateX: d.x
+              });
+            } else if (direction === 2) {
+              d.y += MOVE_PX$1;
+              node.updateStyle({
+                translateY: d.y
+              });
+            } else if (direction === 3) {
+              d.x -= MOVE_PX$1;
+              node.updateStyle({
+                translateX: d.x
+              });
+            }
+
+            if (checkBox$1(position, direction, d.x, d.y, data.current.box)) {
+              emitHit(node, id, direction, d.x, d.y, eventBus.HIT_BOX);
+              karas$1.animate.frame.offFrame(frame);
+              delete hash[id];
+
+              _this3.setState({
+                hash: hash
+              });
+
+              return;
+            }
+
+            var brick = checkHit(position, direction, d.x, d.y, data.current.brick);
+
+            if (brick) {
+              emitHit(node, id, direction, d.x, d.y, eventBus.HIT_BRICK, brick);
+              karas$1.animate.frame.offFrame(frame);
+              delete hash[id];
+
+              _this3.setState({
+                hash: hash
+              });
+
+              return;
+            }
+
+            var iron = checkHit(position, direction, d.x, d.y, data.current.iron);
+
+            if (iron) {
+              emitHit(node, id, direction, d.x, d.y, eventBus.HIT_IRON, brick);
+              karas$1.animate.frame.offFrame(frame);
+              delete hash[id];
+
+              _this3.setState({
+                hash: hash
+              });
+
+              return;
+            }
+          };
+
+          karas$1.animate.frame.onFrame(frame);
+        });
+      }
+    }, {
+      key: "render",
+      value: function render() {
+        var _this4 = this;
+
+        return karas$1.createElement("div", {
+          style: {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: '100%',
+            height: '100%',
+            visibility: this.state.show ? 'visible' : 'hidden'
+          }
+        }, Object.keys(this.state.hash).map(function (id) {
+          var data = _this4.state.hash[id];
+          var position = data.position,
+              direction = data.direction,
+              x = data.x,
+              y = data.y;
+          var left, top, background;
+
+          if (direction === 0) {
+            left = position[0] + 12;
+            top = position[1] - 4;
+            background = 'url(tank.png) no-repeat 0 -170px';
+          } else if (direction === 1) {
+            left = position[0] + 28;
+            top = position[1] + 12;
+            background = 'url(tank.png) no-repeat -10px -179px';
+          } else if (direction === 2) {
+            left = position[0] + 12;
+            top = position[1] + 28;
+            background = 'url(tank.png) no-repeat -10px -170px';
+          } else if (direction === 3) {
+            left = position[0] - 4;
+            top = position[1] + 12;
+            background = 'url(tank.png) no-repeat 0 -179px';
+          }
+
+          return karas$1.createElement("span", {
+            ref: id,
+            key: id,
+            style: {
+              position: 'absolute',
+              left: left,
+              top: top,
+              width: 8,
+              height: 8,
+              background: background,
+              translateX: x,
+              translateY: y
+            }
+          });
+        }));
+      }
+    }]);
+
+    return Bullet;
+  }(karas$1.Component);
+
+  var Hit = /*#__PURE__*/function (_karas$Component) {
+    _inherits(Hit, _karas$Component);
+
+    var _super = _createSuper(Hit);
+
+    function Hit(props) {
+      var _this;
+
+      _classCallCheck(this, Hit);
+
+      _this = _super.call(this, props);
+      _this.state = {
+        hash: {}
+      };
+      return _this;
+    }
+
+    _createClass(Hit, [{
+      key: "componentDidMount",
+      value: function componentDidMount() {
+        var _this2 = this;
+
+        eventBus.on([eventBus.HIT_BOX, eventBus.HIT_BRICK, eventBus.HIT_IRON], function (id, x, y) {
+          var hash = _this2.state.hash;
+          hash[id] = {
+            x: x,
+            y: y
+          };
+
+          _this2.setState({
+            hash: hash
+          }, function () {
+            var node = _this2.ref[id];
+            var a = node.animate([{
+              visibility: 'visible'
+            }, {
+              visibility: 'visible',
+              backgroundPosition: '-748px -136px'
+            }], {
+              duration: 100,
+              iterations: 2,
+              direction: 'alternate',
+              easing: 'steps(2)'
+            }); // a.on('frame', () => {console.log(2, id);});
+
+            a.on('finish', function () {
+              delete hash[id];
+
+              _this2.setState({
+                hash: hash
+              });
+            });
+          });
+        });
+      }
+    }, {
+      key: "render",
+      value: function render() {
+        var _this3 = this;
+
+        return karas$1.createElement("div", {
+          style: {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: '100%',
+            height: '100%'
+          }
+        }, Object.keys(this.state.hash).map(function (id) {
+          var d = _this3.state.hash[id];
+          return karas$1.createElement("span", {
+            ref: id,
+            key: id,
+            style: {
+              position: 'absolute',
+              left: d.x,
+              top: d.y,
+              width: 32,
+              height: 32,
+              translateX: '-50%',
+              translateY: '-50%',
+              background: 'url(tank.png) no-repeat -680px -136px',
+              visibility: 'hidden'
+            }
+          });
+        }));
+      }
+    }]);
+
+    return Hit;
+  }(karas$1.Component);
+
   var root = karas.render(karas.createElement("canvas", {
     width: 600,
     height: 600
@@ -1096,10 +1514,14 @@
     ref: "brick"
   }), karas.createElement(Brick$1, {
     ref: "iron"
-  }), karas.createElement(Fade, {
-    ref: "fade"
   }), karas.createElement(Player, {
     ref: "player"
+  }), karas.createElement(Fade, {
+    ref: "fade"
+  }), karas.createElement(Bullet, {
+    ref: "bullet"
+  }), karas.createElement(Hit, {
+    ref: "hit"
   }), karas.createElement(Menu, {
     ref: "menu"
   }), karas.createElement(StageNum, {
@@ -1115,6 +1537,12 @@
         eventBus.gameState = eventBus.BEFORE_GAME;
         var currentData = data.current = karas.util.clone(data[0]);
         root.ref.stageNum.show(1);
+        root.ref.brick.setState({
+          list: currentData.brick
+        });
+        root.ref.iron.setState({
+          list: currentData.iron
+        });
         root.ref.player.setState({
           list: currentData.player,
           position: currentData.player.map(function (item) {
@@ -1133,6 +1561,10 @@
         root.ref.player.move(0, 2);
       } else if (keyCode === 65) {
         root.ref.player.move(0, 3);
+      } else if (keyCode === 74) {
+        var position = root.ref.player.getPosition(0);
+        var direction = root.ref.player.getDirection(0);
+        root.ref.bullet.move(0, position.slice(0), direction);
       }
     }
   });
