@@ -98,7 +98,7 @@ class Enemy extends karas.Component {
             if(util.checkBox(px, py, direction, data.current.box)
               || util.checkMove(px, py, direction, data.current.brick)
               || util.checkMove(px, py, direction, data.current.iron)
-              // || util.checkEnemy(px, py, direction, i, data.current.enemy)
+              || util.checkEnemy(px, py, direction, i, data.current.enemy)
               || util.checkUs(px, py, direction, -1, data.current.player)
               || util.checkHome(px, py, direction, data.current.home)) {
               let count = item[7]++;

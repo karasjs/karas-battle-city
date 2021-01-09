@@ -30,7 +30,7 @@ class Fade extends karas.Component {
           return;
         }
         // 限制数量
-        if(eventBus.activeEnemyNum > 1) {
+        if(eventBus.activeEnemyNum >= 5) {
           return;
         }
         eventBus.activeEnemyNum++;
@@ -42,7 +42,7 @@ class Fade extends karas.Component {
         if(count >= 6) {
           clearInterval(interval);
         }
-      }, 500);
+      }, 3000);
     });
     eventBus.on(eventBus.PLAY_REBONE, (i) => {
       this.show('player', i);

@@ -169,7 +169,7 @@
       "iron": [[30, 15], [29, 15], [6, 15], [5, 15], [17, 7], [18, 7], [18, 8], [17, 8]],
       "home": [[17, 26]],
       "player": [[13, 26, 2, 1], [21, 26, 2, 1]],
-      "enemy": [[5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0]],
+      "enemy": [[5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0]],
       "box": [5, 2, 31, 28]
     },
     current: null
@@ -822,7 +822,7 @@
             } // 限制数量
 
 
-            if (eventBus.activeEnemyNum > 1) {
+            if (eventBus.activeEnemyNum >= 5) {
               return;
             }
 
@@ -837,7 +837,7 @@
             if (count >= 6) {
               clearInterval(interval);
             }
-          }, 500);
+          }, 3000);
         });
         eventBus.on(eventBus.PLAY_REBONE, function (i) {
           _this2.show('player', i);
@@ -1647,8 +1647,7 @@
                 } // 检测移动，积累count到一定后没有一定随机更换方向
 
 
-                if (util.checkBox(px, py, direction, data.current.box) || util.checkMove(px, py, direction, data.current.brick) || util.checkMove(px, py, direction, data.current.iron) // || util.checkEnemy(px, py, direction, i, data.current.enemy)
-                || util.checkUs(px, py, direction, -1, data.current.player) || util.checkHome(px, py, direction, data.current.home)) {
+                if (util.checkBox(px, py, direction, data.current.box) || util.checkMove(px, py, direction, data.current.brick) || util.checkMove(px, py, direction, data.current.iron) || util.checkEnemy(px, py, direction, i, data.current.enemy) || util.checkUs(px, py, direction, -1, data.current.player) || util.checkHome(px, py, direction, data.current.home)) {
                   var count = item[7]++;
 
                   if (count >= TURN_COUNT[type] || 1) {
