@@ -6,24 +6,45 @@ class Fade extends karas.Component {
   constructor(props) {
     super(props);
     this.state = {
-      enemy: data[0].enemy,
-      player: data[0].player,
+      enemy: [],
+      player: [],
     };
   }
 
   componentDidMount() {
     // 开始游戏
-    eventBus.on(eventBus.GAMEING, () => {
-      this.updateStyle({
-        visibility: 'visible',
+    eventBus.on(eventBus.WILL_GAME, () => {
+      this.setState({
+        enemy: data.current.enemy,
+        player: data.current.player,
       });
-      this.show(0);
-      this.show(1);
+    });
+    eventBus.on(eventBus.GAMEING, () => {
+      this.show('player', 0);
+      this.show('player', 1);
+      let count = 0;
+      let interval = setInterval(() => {
+        if(eventBus.gameState !== eventBus.GAMEING) {
+          clearInterval(interval);
+          return;
+        }
+        let id = count++;
+        setTimeout(function() {
+          eventBus.emit(eventBus.ADD_ENEMY, id);
+        }, 2000);
+        this.show('enemy', id % 3);
+        if(count >= 3) {
+          clearInterval(interval);
+        }
+      }, 2000);
+    });
+    eventBus.on(eventBus.PLAY_REBONE, (i) => {
+      this.show('player', i);
     });
   }
 
-  show(i) {
-    let node = this.ref['player' + i];
+  show(name, i) {
+    let node = this.ref[name + i];
     node.animate([
       {
         visibility: 'visible',
@@ -41,12 +62,6 @@ class Fade extends karas.Component {
     });
   }
 
-  updateList(list) {
-    this.setState({
-      list,
-    });
-  }
-
   render() {
     return <div style={{
       position: 'absolute',
@@ -54,11 +69,11 @@ class Fade extends karas.Component {
       top: 0,
       width: '100%',
       height: '100%',
-      visibility: 'hidden',
+      opacity: 0.9,
     }}>
       {
         this.state.enemy.map((item, i) => {
-          return <span ref={'player' + i}
+          return <span ref={'enemy' + i}
                        style={{
                          position: 'absolute',
                          left: item[0] * 16,

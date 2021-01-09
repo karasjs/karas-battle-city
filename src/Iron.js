@@ -6,6 +6,7 @@ class Brick extends karas.Component {
   constructor(props) {
     super(props);
     this.state = {
+      show: false,
       list: [],
     };
   }
@@ -13,15 +14,10 @@ class Brick extends karas.Component {
   componentDidMount() {
     // 开始游戏
     eventBus.on(eventBus.WILL_GAME, () => {
-      this.updateStyle({
-        visibility: 'visible',
+      this.setState({
+        show: true,
+        list: data.current.iron,
       });
-    });
-  }
-
-  updateList(list) {
-    this.setState({
-      list,
     });
   }
 
@@ -32,7 +28,7 @@ class Brick extends karas.Component {
       top: 0,
       width: '100%',
       height: '100%',
-      visibility: 'hidden',
+      visibility: this.state.show ? 'visible' : 'hidden',
     }}>
       {
         this.state.list.map(item => {

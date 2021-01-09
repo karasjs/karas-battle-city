@@ -1,127 +1,179 @@
 import karas from 'karas';
 import data from './data';
 import eventBus from './eventBus';
+import util from './util';
 
 const MOVE_PX = 2;
-
-function checkBox(position, direction, box) {
-  let [tx1, ty1] = position;
-  let tx2 = tx1 + 32;
-  let ty2 = ty1 + 32;
-  let [x1, y1, x2, y2] = box;
-  x1 *= 16;
-  y1 *= 16;
-  x2 *= 16;
-  y2 *= 16;
-  if(direction === 0) {
-    if(y1 === ty1) {
-      return true;
-    }
-  }
-  else if(direction === 1) {
-    if(x2 === tx2) {
-      return true;
-    }
-  }
-  else if(direction === 2) {
-    if(y2 === ty2) {
-      return true;
-    }
-  }
-  else if(direction === 3) {
-    if(x1 === tx1) {
-      return true;
-    }
-  }
-}
-
-function checkMove(position, direction, list) {
-  let [tx1, ty1] = position;
-  let tx2 = tx1 + 32;
-  let ty2 = ty1 + 32;
-  for(let i = 0, len = list.length; i < len; i++) {
-    let [x1, y1, disappear] = list[i];
-    if(disappear) {
-      continue;
-    }
-    x1 *= 16;
-    y1 *= 16;
-    let x2 = x1 + 16;
-    let y2 = y1 + 16;
-    if(direction === 0) {
-      if(x1 < tx2 - 1 && x2 > tx1 + 1 && ty1 - y2 === 0) {
-        return true;
-      }
-    }
-    else if(direction === 1) {
-      if(y1 < ty2 - 1 && y2 > ty1 + 1 && tx2 - x1 === 0) {
-        return true;
-      }
-    }
-    else if(direction === 2) {
-      if(x1 < tx2 - 1 && x2 > tx1 + 1 && ty2 - y1 === 0) {
-        return true;
-      }
-    }
-    else if(direction === 3) {
-      if(y1 < ty2 - 1 && y2 > ty1 + 1 && tx1 - x2 === 0) {
-        return true;
-      }
-    }
-  }
-}
+const PROTECT_COUNT = 32;
 
 class Player extends karas.Component {
   constructor(props) {
     super(props);
     this.state = {
-      list: [],
-      position: [],
-      // list: data[0].player,
-      // position: data[0].player.map(item => {
-      //   return item.map(n => n * 16);
-      // }),
+      show: false,
+      list: [], // 0,1方块位置x,y；2命数，3状态012无保护定，4type,5,6坐标位置x,y
     };
   }
 
   componentDidMount() {
     // 开始游戏
     eventBus.on(eventBus.GAMEING, () => {
-      this.updateStyle({
-        visibility: 'visible',
+      let list = data.current.player;
+      this.setState({
+        show: true,
+        list,
+      }, () => {
+        this.state.list.forEach((item, i) => {
+          let player = this.ref['player' + i];
+          let shield = this.ref['shield' + i];
+          player.clearAnimate();
+          item[3] = 1;
+          let fadeIn = player.animate([
+            {
+              opacity: 0.85,
+            },
+            {
+              opacity: 0.7,
+            },
+          ], {
+            duration: 100,
+            iterations: PROTECT_COUNT,
+            direction: 'alternate',
+            easing: 'steps(2)',
+          });
+          fadeIn.on('finish', () => {
+            player.removeAnimate(fadeIn);
+            item[3] = 0;
+          });
+          shield.clearAnimate();
+          shield.animate([
+            {
+              backgroundPosition: '-442 -238',
+            },
+            {
+              backgroundPosition: '-510 -238',
+            },
+          ], {
+            duration: 100,
+            iterations: PROTECT_COUNT,
+            direction: 'alternate',
+            easing: 'steps(2)',
+          });
+        });
       });
-      this.state.list.forEach((item, i) => {
-        let player = this.ref['player' + i];
-        let shield = this.ref['shield' + i];
-        let fadeIn = player.animate([
-          {
-            opacity: 0.85,
-          },
-          {
-            opacity: 0.7,
-          },
-        ], {
-          duration: 100,
-          iterations: 32,
-          direction: 'alternate',
-          easing: 'steps(2)',
-        });
-        fadeIn.on('finish', () => {
-          player.removeAnimate(fadeIn);
-        });
-        shield.animate([
-          {
-            backgroundPosition: '-442 -238',
-          },
-          {
-            backgroundPosition: '-510 -238',
-          },
-        ], {
-          duration: 100,
-          iterations: 32,
-          direction: 'alternate',
-          easing: 'steps(2)',
-        });
+    });
+    eventBus.on(eventBus.HIT_US, (id, x, y, us) => {
+      us.forEach(item => {
+        let i;
+        if(item === this.state.list[0]) {
+          i = 0;
+        }
+        else if(item === this.state.list[1]) {
+          i = 1;
+        }
+        if(i !== undefined) {
+          let item = this.state.list[i];
+          let player = this.ref['player' + i];
+          if(item[3] === 1) {
+            return;
+          }
+          let life = item[2]--;
+          if(life < 0) {
+            player.updateStyle({
+              visibility: 'hidden',
+            });
+            return;
+          }
+          eventBus.emit(eventBus.PLAY_REBONE, i);
+          let shield = this.ref['shield' + i];
+          item[3] = 1;
+          let tx = item[5] = item[0] * 16;
+          let ty = item[6] = item[1] * 16;
+          player.updateStyle({
+            translateX: tx,
+            translateY: ty,
+          });
+          player.clearAnimate();
+          let fadeIn = player.animate([
+            {
+              opacity: 0.85,
+            },
+            {
+              opacity: 0.7,
+            },
+          ], {
+            duration: 100,
+            iterations: 32,
+            direction: 'alternate',
+            easing: 'steps(2)',
+          });
+          fadeIn.on('finish', () => {
+            player.removeAnimate(fadeIn);
+            item[3] = 0;
+          });
+          shield.clearAnimate();
+          shield.animate([
+            {
+              backgroundPosition: '-442 -238',
+            },
+            {
+              backgroundPosition: '-510 -238',
+            },
+          ], {
+            duration: 100,
+            iterations: 32,
+            direction: 'alternate',
+            easing: 'steps(2)',
+          });
+        }
+      });
+    });
+    eventBus.on(eventBus.HIT_US_BY_US, (id, x, y, us) => {
+      us.forEach(item => {
+        let i;
+        if(item === this.state.list[0]) {
+          i = 0;
+        }
+        else if(item === this.state.list[1]) {
+          i = 1;
+        }
+        if(i !== undefined) {
+          let item = this.state.list[i];
+          let player = this.ref['player' + i];
+          if(item[3] === 1) {
+            return;
+          }
+          // 2以上为定住，倒计时数字
+          if(item[3] > 1) {
+            item[3] = 200;
+            return;
+          }
+          item[3] = 200;
+          let cb = () => {
+            // 销毁结束
+            if(player.isDestroyed) {
+              karas.animate.frame.offFrame(cb);
+              return;
+            }
+            item[3]--;
+            let n = (item[3] - 2) % 16;
+            if(n < 8) {
+              player.updateStyle({
+                visibility: 'visible',
+              });
+            }
+            else {
+              player.updateStyle({
+                visibility: 'hidden',
+              });
+            }
+            if(item[3] === 2) {
+              item[3] = 0;
+              karas.animate.frame.offFrame(cb);
+            }
+          };
+          karas.animate.frame.onFrame(cb);
+        }
       });
     });
   }
@@ -129,6 +181,9 @@ class Player extends karas.Component {
   move(index, direction) {
     let player = this.ref['player' + index];
     let tank = this.ref['tank' + index];
+    if(!tank) {
+      return;
+    }
     // 播放坦克移动本身帧动画
     let currentD = this['playerCurrentD' + index];
     if(currentD !== direction) {
@@ -186,57 +241,57 @@ class Player extends karas.Component {
       return;
     }
     this['playerLastD' + index] = direction;
-    // 检查是否被挡住
-    let position = this.state.position[index];
-    if(checkBox(position, direction, data.current.box)) {
-      return;
-    }
-    if(checkMove(position, direction, data.current.brick)) {
-      return;
-    }
-    if(checkMove(position, direction, data.current.iron)) {
-      return;
-    }
-    // 坦克坐标移动
     let cb = this['ma' + index];
-    let frameDrop = 0;
     karas.animate.frame.offFrame(cb);
+    // 检查是否被挡住
+    let item = this.state.list[index];
+    // 坦克坐标移动，没2帧移动1次2px，便于控制
+    let frameDrop = 0;
     cb = this['ma' + index] = function() {
       if(frameDrop++ < 1) {
         return;
       }
       frameDrop = 0;
-      if(checkBox(position, direction, data.current.box)) {
+      if(util.checkBox(item[5], item[6], direction, data.current.box)) {
         return;
       }
-      if(checkMove(position, direction, data.current.brick)) {
+      if(util.checkMove(item[5], item[6], direction, data.current.brick)) {
         return;
       }
-      if(checkMove(position, direction, data.current.iron)) {
+      if(util.checkMove(item[5], item[6], direction, data.current.iron)) {
+        return;
+      }
+      if(util.checkEnemy(item[5], item[6], direction, data.current.enemy)) {
+        return;
+      }
+      if(util.checkUs(item[5], item[6], direction, data.current.player)) {
+        return;
+      }
+      if(util.checkHome(item[5], item[6], direction, data.current.home)) {
         return;
       }
       if(direction === 0) {
-        position[1] -= MOVE_PX;
+        item[6] -= MOVE_PX;
         player.updateStyle({
-          translateY: player.getComputedStyle('translateY').translateY - MOVE_PX,
+          translateY: item[6],
         });
       }
       else if(direction === 1) {
-        position[0] += MOVE_PX;
+        item[5] += MOVE_PX;
         player.updateStyle({
-          translateX: player.getComputedStyle('translateX').translateX + MOVE_PX,
+          translateX: item[5],
         });
       }
       else if(direction === 2) {
-        position[1] += MOVE_PX;
+        item[6] += MOVE_PX;
         player.updateStyle({
-          translateY: player.getComputedStyle('translateY').translateY + MOVE_PX,
+          translateY: item[6],
         });
       }
       else if(direction === 3) {
-        position[0] -= MOVE_PX;
+        item[5] -= MOVE_PX;
         player.updateStyle({
-          translateX: player.getComputedStyle('translateX').translateX - MOVE_PX,
+          translateX: item[5],
         });
       }
     };
@@ -246,35 +301,63 @@ class Player extends karas.Component {
   stop(index) {
     let player = this.ref['player' + index];
     let tank = this.ref['tank' + index];
-    tank.animationList[0].pause();
+    let item = this.state.list[index];
+    tank.animationList.length && tank.animationList[0].pause();
     let cb = this['ma' + index];
     karas.animate.frame.offFrame(cb);
     let currentD = this['playerCurrentD' + index];
+    // 停止朝向，同时为了便于控制，设置tank停止位置为4的倍数，容易转向
+    let x = item[5];
+    let y = item[6];
     if(currentD === 0) {
       player.updateStyle({
         backgroundPositionX: 0,
       });
+      if(y % 4 !== 0) {
+        item[6] -= MOVE_PX;
+        player.updateStyle({
+          translateY: item[6],
+        });
+      }
     }
     else if(currentD === 1) {
       player.updateStyle({
         backgroundPositionX: -68,
       });
+      if(x % 4 !== 0) {
+        item[5] += MOVE_PX;
+        player.updateStyle({
+          translateX: item[5],
+        });
+      }
     }
     else if(currentD === 2) {
       player.updateStyle({
         backgroundPositionX: -136,
       });
+      if(y % 4 !== 0) {
+        item[6] += MOVE_PX;
+        player.updateStyle({
+          translateY: item[6],
+        });
+      }
     }
     else if(currentD === 3) {
       player.updateStyle({
         backgroundPositionX: -204,
       });
+      if(x % 4 !== 0) {
+        item[5] -= MOVE_PX;
+        player.updateStyle({
+          translateX: item[5],
+        });
+      }
     }
     this['playerCurrentD' + index] = null;
   }
 
   getPosition(index) {
-    return this.state.position[index];
+    return this.state.list[index].slice(5, 7);
   }
 
   getDirection(index) {
@@ -288,11 +371,13 @@ class Player extends karas.Component {
       top: 0,
       width: '100%',
       height: '100%',
-      visibility: 'hidden',
+      visibility: this.state.show ? 'visible' : 'hidden',
     }}>
       {
         this.state.list.map((item, i) => {
-          let y = -272 - i * 34;
+          let py = -272 - i * 34;
+          let tx = item[5] = item[0] * 16;
+          let ty = item[6] = item[1] * 16;
           return <div ref={'player' + i}
                       style={{
                         position: 'absolute',
@@ -300,8 +385,8 @@ class Player extends karas.Component {
                         top: 0,
                         width: 32,
                         height: 32,
-                        translateX: item[0] * 16,
-                        translateY: item[1] * 16,
+                        translateX: tx,
+                        translateY: ty,
                       }}>
             <span ref={'tank' + i}
                   style={{
@@ -310,7 +395,7 @@ class Player extends karas.Component {
                     top: 0,
                     width: '100%',
                     height: '100%',
-                    background: `url(tank.png) no-repeat 0 ${y}`,
+                    background: `url(tank.png) no-repeat 0 ${py}`,
                   }}/>
             <span ref={'shield' + i}
                   style={{

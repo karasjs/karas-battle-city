@@ -10,7 +10,7 @@ class Menu extends karas.Component {
   componentDidMount() {
     let sr = this.shadowRoot;
     let tank = this.ref.tank;
-    let animation = sr.animate([
+    let animation = this.animation = sr.animate([
       {},
       {
         translateY: '-50%',
@@ -21,7 +21,8 @@ class Menu extends karas.Component {
     });
     let tankAnimation;
     // 上移结束显示选择tank
-    animation.on('finish', function() {
+    animation.on('finish', () => {
+      this.animation = null;
       eventBus.emit(eventBus.MENUING);
       eventBus.gameState = eventBus.MENUING;
       tank.updateStyle({
@@ -44,8 +45,23 @@ class Menu extends karas.Component {
       this.updateStyle({
         visibility: 'hidden',
       });
+      sr.clearAnimate();
       tankAnimation.pause();
     });
+  }
+
+  show() {
+    this.updateStyle({
+      visibility: 'visible',
+    });
+    this.componentDidMount();
+  }
+
+  fastShow() {
+    if(this.animation) {
+      this.animation.finish();
+      this.animation = null;
+    }
   }
 
   altPlayerNum() {

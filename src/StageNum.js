@@ -42,11 +42,11 @@ class StageNum extends karas.Component {
         this.ref.text.updateStyle({
           visibility: 'visible',
         }, () => {
+          eventBus.gameState = eventBus.WILL_GAME;
+          eventBus.emit(eventBus.WILL_GAME);
           // 等待1s
           setTimeout(() => {
             // 隐藏主tank菜单和局数，显示游戏主场景
-            eventBus.emit(eventBus.WILL_GAME);
-            eventBus.gameState = eventBus.WILL_GAME;
             this.ref.text.updateStyle({
               visibility: 'hidden',
             });

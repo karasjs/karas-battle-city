@@ -1,5 +1,4 @@
 import karas from 'karas';
-import data from './data';
 import eventBus from './eventBus';
 
 class Hit extends karas.Component {
@@ -11,7 +10,7 @@ class Hit extends karas.Component {
   }
 
   componentDidMount() {
-    eventBus.on([eventBus.HIT_BOX, eventBus.HIT_BRICK, eventBus.HIT_IRON], (id, x, y) => {
+    eventBus.on([eventBus.HIT_BOX, eventBus.HIT_BRICK, eventBus.HIT_IRON, eventBus.HIT_ENEMY], (id, x, y) => {
       let hash = this.state.hash;
       hash[id] = {
         x,
@@ -35,7 +34,6 @@ class Hit extends karas.Component {
           direction: 'alternate',
           easing: 'steps(2)',
         });
-        // a.on('frame', () => {console.log(2, id);});
         a.on('finish', () => {
           delete hash[id];
           this.setState({
