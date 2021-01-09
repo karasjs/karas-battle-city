@@ -14,6 +14,7 @@ class Fade extends karas.Component {
   componentDidMount() {
     // 开始游戏
     eventBus.on(eventBus.WILL_GAME, () => {
+      eventBus.activeEnemyNum = 0;
       this.setState({
         enemy: data.current.enemy,
         player: data.current.player,
@@ -28,15 +29,20 @@ class Fade extends karas.Component {
           clearInterval(interval);
           return;
         }
+        // 限制数量
+        if(eventBus.activeEnemyNum > 1) {
+          return;
+        }
+        eventBus.activeEnemyNum++;
         let id = count++;
         setTimeout(function() {
           eventBus.emit(eventBus.ADD_ENEMY, id);
-        }, 2000);
+        }, 1500);
         this.show('enemy', id % 3);
-        if(count >= 3) {
+        if(count >= 6) {
           clearInterval(interval);
         }
-      }, 2000);
+      }, 500);
     });
     eventBus.on(eventBus.PLAY_REBONE, (i) => {
       this.show('player', i);

@@ -12,6 +12,7 @@ eventBus.GAME_OVER = 5;
 eventBus.GAME_OVER_WAIT = 6;
 
 eventBus.gameState = eventBus.BEFORE_MENU;
+eventBus.activeEnemyNum = 0;
 
 eventBus.HIT_BOX = 'HIT_BOX';
 eventBus.HIT_BRICK = 'HIT_BRICK';

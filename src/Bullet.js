@@ -80,7 +80,7 @@ function checkHitEnemy(position, direction, dx, dy, list) {
   let res = [];
   for(let i = 0, len = list.length; i < len; i++) {
     let item = list[i];
-    // 只检查老tank，防止死tank和新tank
+    // 只检查老tank，防止死tank和新tank和无和等
     if(item[3] !== 1) {
       continue;
     }
@@ -355,6 +355,7 @@ class Bullet extends karas.Component {
         }
         let enemy = checkHitEnemy(position, direction, d.x, d.y, data.current.enemy);
         if(enemy) {
+          eventBus.activeEnemyNum -= enemy.length;
           emitHit(node, id, direction, d.x, d.y, eventBus.HIT_ENEMY, enemy);
         }
         let us = checkHitUs(position, direction, d.x, d.y, index, data.current.player);

@@ -261,10 +261,10 @@ class Player extends karas.Component {
       if(util.checkMove(item[5], item[6], direction, data.current.iron)) {
         return;
       }
-      if(util.checkEnemy(item[5], item[6], direction, data.current.enemy)) {
+      if(util.checkEnemy(item[5], item[6], direction, -1, data.current.enemy)) {
         return;
       }
-      if(util.checkUs(item[5], item[6], direction, data.current.player)) {
+      if(util.checkUs(item[5], item[6], direction, index, data.current.player)) {
         return;
       }
       if(util.checkHome(item[5], item[6], direction, data.current.home)) {

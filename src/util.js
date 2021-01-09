@@ -63,12 +63,16 @@ function checkMove(tx1, ty1, direction, list) {
   }
 }
 
-function checkEnemy(tx1, ty1, direction, list) {
+function checkEnemy(tx1, ty1, direction, index, list) {
   let tx2 = tx1 + 32;
   let ty2 = ty1 + 32;
   for(let i = 0, len = list.length; i < len; i++) {
+    // 自己
+    if(i === index) {
+      continue;
+    }
     let item = list[i];
-    // 死tank
+    // 死tank或无
     if(item[3] === 2) {
       continue;
     }
@@ -77,34 +81,38 @@ function checkEnemy(tx1, ty1, direction, list) {
     let x2 = x1 + 32;
     let y2 = y1 + 32;
     if(direction === 0) {
-      if(x1 < tx2 && x2 > tx1 && ty1 - y2 === 0) {
+      if(x1 < tx2 && x2 > tx1 && ty1 <= y2 && ty1 >= y1) {
         return true;
       }
     }
     else if(direction === 1) {
-      if(y1 < ty2 && y2 > ty1 && tx2 - x1 === 0) {
+      if(y1 < ty2 && y2 > ty1 && tx2 >= x1 && tx2 <= x2) {
         return true;
       }
     }
     else if(direction === 2) {
-      if(x1 < tx2 && x2 > tx1 && ty2 - y1 === 0) {
+      if(x1 < tx2 && x2 > tx1 && ty2 >= y1 && ty2 <= y2) {
         return true;
       }
     }
     else if(direction === 3) {
-      if(y1 < ty2 && y2 > ty1 && tx1 - x2 === 0) {
+      if(y1 < ty2 && y2 > ty1 && tx1 <= x2 && tx1 >= x1) {
         return true;
       }
     }
   }
 }
 
-function checkUs(tx1, ty1, direction, list) {
+function checkUs(tx1, ty1, direction, index, list) {
   let tx2 = tx1 + 32;
   let ty2 = ty1 + 32;
   for(let i = 0, len = list.length; i < len; i++) {
     let item = list[i];
-    // 死tank
+    // 自己
+    if(index === i) {
+      continue;
+    }
+    // 没命
     if(item[2] === 0) {
       continue;
     }
@@ -113,22 +121,22 @@ function checkUs(tx1, ty1, direction, list) {
     let x2 = x1 + 32;
     let y2 = y1 + 32;
     if(direction === 0) {
-      if(x1 < tx2 && x2 > tx1 && ty1 - y2 === 0) {
+      if(x1 < tx2 && x2 > tx1 && ty1 <= y2 && ty1 >= y1) {
         return true;
       }
     }
     else if(direction === 1) {
-      if(y1 < ty2 && y2 > ty1 && tx2 - x1 === 0) {
+      if(y1 < ty2 && y2 > ty1 && tx2 >= x1 && tx2 <= x2) {
         return true;
       }
     }
     else if(direction === 2) {
-      if(x1 < tx2 && x2 > tx1 && ty2 - y1 === 0) {
+      if(x1 < tx2 && x2 > tx1 && ty2 >= y1 && ty2 <= y2) {
         return true;
       }
     }
     else if(direction === 3) {
-      if(y1 < ty2 && y2 > ty1 && tx1 - x2 === 0) {
+      if(y1 < ty2 && y2 > ty1 && tx1 <= x2 && tx1 >= x1) {
         return true;
       }
     }

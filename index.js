@@ -169,7 +169,7 @@
       "iron": [[30, 15], [29, 15], [6, 15], [5, 15], [17, 7], [18, 7], [18, 8], [17, 8]],
       "home": [[17, 26]],
       "player": [[13, 26, 2, 1], [21, 26, 2, 1]],
-      "enemy": [[5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0]],
+      "enemy": [[5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0]],
       "box": [5, 2, 31, 28]
     },
     current: null
@@ -184,6 +184,7 @@
   eventBus.GAME_OVER = 5;
   eventBus.GAME_OVER_WAIT = 6;
   eventBus.gameState = eventBus.BEFORE_MENU;
+  eventBus.activeEnemyNum = 0;
   eventBus.HIT_BOX = 'HIT_BOX';
   eventBus.HIT_BRICK = 'HIT_BRICK';
   eventBus.HIT_IRON = 'HIT_IRON';
@@ -801,6 +802,8 @@
 
         // 开始游戏
         eventBus.on(eventBus.WILL_GAME, function () {
+          eventBus.activeEnemyNum = 0;
+
           _this2.setState({
             enemy: data.current.enemy,
             player: data.current.player
@@ -816,19 +819,25 @@
             if (eventBus.gameState !== eventBus.GAMEING) {
               clearInterval(interval);
               return;
+            } // 限制数量
+
+
+            if (eventBus.activeEnemyNum > 1) {
+              return;
             }
 
+            eventBus.activeEnemyNum++;
             var id = count++;
             setTimeout(function () {
               eventBus.emit(eventBus.ADD_ENEMY, id);
-            }, 2000);
+            }, 1500);
 
             _this2.show('enemy', id % 3);
 
-            if (count >= 3) {
+            if (count >= 6) {
               clearInterval(interval);
             }
-          }, 2000);
+          }, 500);
         });
         eventBus.on(eventBus.PLAY_REBONE, function (i) {
           _this2.show('player', i);
@@ -967,12 +976,17 @@
     }
   }
 
-  function checkEnemy(tx1, ty1, direction, list) {
+  function checkEnemy(tx1, ty1, direction, index, list) {
     var tx2 = tx1 + 32;
     var ty2 = ty1 + 32;
 
     for (var i = 0, len = list.length; i < len; i++) {
-      var item = list[i]; // 死tank
+      // 自己
+      if (i === index) {
+        continue;
+      }
+
+      var item = list[i]; // 死tank或无
 
       if (item[3] === 2) {
         continue;
@@ -984,31 +998,36 @@
       var y2 = y1 + 32;
 
       if (direction === 0) {
-        if (x1 < tx2 && x2 > tx1 && ty1 - y2 === 0) {
+        if (x1 < tx2 && x2 > tx1 && ty1 <= y2 && ty1 >= y1) {
           return true;
         }
       } else if (direction === 1) {
-        if (y1 < ty2 && y2 > ty1 && tx2 - x1 === 0) {
+        if (y1 < ty2 && y2 > ty1 && tx2 >= x1 && tx2 <= x2) {
           return true;
         }
       } else if (direction === 2) {
-        if (x1 < tx2 && x2 > tx1 && ty2 - y1 === 0) {
+        if (x1 < tx2 && x2 > tx1 && ty2 >= y1 && ty2 <= y2) {
           return true;
         }
       } else if (direction === 3) {
-        if (y1 < ty2 && y2 > ty1 && tx1 - x2 === 0) {
+        if (y1 < ty2 && y2 > ty1 && tx1 <= x2 && tx1 >= x1) {
           return true;
         }
       }
     }
   }
 
-  function checkUs(tx1, ty1, direction, list) {
+  function checkUs(tx1, ty1, direction, index, list) {
     var tx2 = tx1 + 32;
     var ty2 = ty1 + 32;
 
     for (var i = 0, len = list.length; i < len; i++) {
-      var item = list[i]; // 死tank
+      var item = list[i]; // 自己
+
+      if (index === i) {
+        continue;
+      } // 没命
+
 
       if (item[2] === 0) {
         continue;
@@ -1020,19 +1039,19 @@
       var y2 = y1 + 32;
 
       if (direction === 0) {
-        if (x1 < tx2 && x2 > tx1 && ty1 - y2 === 0) {
+        if (x1 < tx2 && x2 > tx1 && ty1 <= y2 && ty1 >= y1) {
           return true;
         }
       } else if (direction === 1) {
-        if (y1 < ty2 && y2 > ty1 && tx2 - x1 === 0) {
+        if (y1 < ty2 && y2 > ty1 && tx2 >= x1 && tx2 <= x2) {
           return true;
         }
       } else if (direction === 2) {
-        if (x1 < tx2 && x2 > tx1 && ty2 - y1 === 0) {
+        if (x1 < tx2 && x2 > tx1 && ty2 >= y1 && ty2 <= y2) {
           return true;
         }
       } else if (direction === 3) {
-        if (y1 < ty2 && y2 > ty1 && tx1 - x2 === 0) {
+        if (y1 < ty2 && y2 > ty1 && tx1 <= x2 && tx1 >= x1) {
           return true;
         }
       }
@@ -1349,11 +1368,11 @@
             return;
           }
 
-          if (util.checkEnemy(item[5], item[6], direction, data.current.enemy)) {
+          if (util.checkEnemy(item[5], item[6], direction, -1, data.current.enemy)) {
             return;
           }
 
-          if (util.checkUs(item[5], item[6], direction, data.current.player)) {
+          if (util.checkUs(item[5], item[6], direction, index, data.current.player)) {
             return;
           }
 
@@ -1523,7 +1542,7 @@
     1: 2,
     2: 1
   };
-  var ENEMY_FIRE_COUNT = 100;
+  var ENEMY_FIRE_COUNT = 10000;
 
   function getBgP(type, direction) {
     var p = '-136 -68';
@@ -1628,7 +1647,8 @@
                 } // 检测移动，积累count到一定后没有一定随机更换方向
 
 
-                if (util.checkBox(px, py, direction, data.current.box) || util.checkMove(px, py, direction, data.current.brick) || util.checkMove(px, py, direction, data.current.iron) || util.checkEnemy(px, py, direction, data.current.enemy) || util.checkUs(px, py, direction, data.current.player) || util.checkHome(px, py, direction, data.current.home)) {
+                if (util.checkBox(px, py, direction, data.current.box) || util.checkMove(px, py, direction, data.current.brick) || util.checkMove(px, py, direction, data.current.iron) // || util.checkEnemy(px, py, direction, i, data.current.enemy)
+                || util.checkUs(px, py, direction, -1, data.current.player) || util.checkHome(px, py, direction, data.current.home)) {
                   var count = item[7]++;
 
                   if (count >= TURN_COUNT[type] || 1) {
@@ -1757,7 +1777,7 @@
             item[6] = py = ty * 16;
             item[7] = 0; // 计时初始化
 
-            item[8] = Math.floor(Math.random() * 200);
+            item[8] = Math.floor(Math.random() * ENEMY_FIRE_COUNT);
           } // 老tank
 
 
@@ -1878,7 +1898,7 @@
     var res = [];
 
     for (var i = 0, len = list.length; i < len; i++) {
-      var item = list[i]; // 只检查老tank，防止死tank和新tank
+      var item = list[i]; // 只检查老tank，防止死tank和新tank和无和等
 
       if (item[3] !== 1) {
         continue;
@@ -2198,6 +2218,7 @@
             var enemy = checkHitEnemy(position, direction, d.x, d.y, data.current.enemy);
 
             if (enemy) {
+              eventBus.activeEnemyNum -= enemy.length;
               emitHit(node, id, direction, d.x, d.y, eventBus.HIT_ENEMY, enemy);
             }
 

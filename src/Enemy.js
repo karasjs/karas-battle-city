@@ -13,7 +13,7 @@ const MOVE_PX = {
   1: 2,
   2: 1,
 };
-const ENEMY_FIRE_COUNT = 100;
+const ENEMY_FIRE_COUNT = 10000;
 
 function getBgP(type, direction) {
   let p = '-136 -68';
@@ -98,8 +98,8 @@ class Enemy extends karas.Component {
             if(util.checkBox(px, py, direction, data.current.box)
               || util.checkMove(px, py, direction, data.current.brick)
               || util.checkMove(px, py, direction, data.current.iron)
-              || util.checkEnemy(px, py, direction, data.current.enemy)
-              || util.checkUs(px, py, direction, data.current.player)
+              // || util.checkEnemy(px, py, direction, i, data.current.enemy)
+              || util.checkUs(px, py, direction, -1, data.current.player)
               || util.checkHome(px, py, direction, data.current.home)) {
               let count = item[7]++;
               if(count >= TURN_COUNT[type] || 1) {
@@ -205,7 +205,7 @@ class Enemy extends karas.Component {
             item[5] = px = tx * 16;
             item[6] = py = ty * 16;
             item[7] = 0; // 计时初始化
-            item[8] = Math.floor(Math.random() * 200);
+            item[8] = Math.floor(Math.random() * ENEMY_FIRE_COUNT);
           }
           // 老tank
           return <div ref={'tank' + i}
