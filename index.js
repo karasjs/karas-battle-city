@@ -2840,8 +2840,12 @@
         eventBus.on(eventBus.HIT_IRON, function () {
           _this.hitIron.play();
         });
-        eventBus.on(eventBus.HIT_ENEMY, function () {
-          _this.hitTank.play();
+        eventBus.on(eventBus.HIT_ENEMY, function (id, x, y, enemy) {
+          if (enemy[0][10] === 0) {
+            _this.hitTank.play();
+          } else {
+            _this.hitIron.play();
+          }
         });
         eventBus.on(eventBus.HIT_US, function () {
           _this.hitHome.play();

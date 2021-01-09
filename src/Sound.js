@@ -58,8 +58,12 @@ class AudioController {
     eventBus.on(eventBus.HIT_IRON, () => {
       this.hitIron.play();
     });
-    eventBus.on(eventBus.HIT_ENEMY, () => {
-      this.hitTank.play();
+    eventBus.on(eventBus.HIT_ENEMY, (id, x, y, enemy) => {
+      if (enemy[0][10] === 0) {
+        this.hitTank.play();
+      } else {
+        this.hitIron.play();
+      }
     });
     eventBus.on(eventBus.HIT_US, () => {
       this.hitHome.play();
