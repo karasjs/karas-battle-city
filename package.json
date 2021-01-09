@@ -31,7 +31,6 @@
   "readmeFilename": "README.md",
   "author": "army8735 <army8735@qq.com>",
   "dependencies": {
-    "howler": "^2.2.1",
-    "lodash": "^4.17.20"
+    "howler": "^2.2.1"
   }
 }
