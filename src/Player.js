@@ -235,7 +235,7 @@ class Player extends karas.Component {
             backgroundPositionX: -238,
           }
         ];
-      }console.warn(frame);
+      }
       tank.animate(frame, {
         duration: 100,
         iterations: Infinity,

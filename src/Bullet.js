@@ -355,7 +355,14 @@ class Bullet extends karas.Component {
         }
         let enemy = checkHitEnemy(position, direction, d.x, d.y, data.current.enemy);
         if(enemy) {
-          eventBus.activeEnemyNum -= enemy.length;
+          let n = 0;
+          // 红和厚不减
+          enemy.forEach(item => {
+            if(!item[10] && !item[9]) {
+              n++;
+            }
+          });
+          eventBus.activeEnemyNum -= n;
           emitHit(node, id, direction, d.x, d.y, eventBus.HIT_ENEMY, enemy);
         }
         let us = checkHitUs(position, direction, d.x, d.y, index, data.current.player);

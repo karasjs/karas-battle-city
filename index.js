@@ -822,7 +822,7 @@
             } // 限制数量
 
 
-            if (eventBus.activeEnemyNum >= data.current.enemy.length) {
+            if (eventBus.activeEnemyNum >= 4) {
               return;
             }
 
@@ -834,7 +834,7 @@
 
             _this2.show('enemy', id % 3);
 
-            if (count >= 4) {
+            if (count >= data.current.enemy.length) {
               clearInterval(interval);
             }
           }, 3000);
@@ -1337,7 +1337,6 @@
             }];
           }
 
-          console.warn(frame);
           tank.animate(frame, {
             duration: 100,
             iterations: Infinity,
@@ -1672,7 +1671,7 @@
 
         case 4:
           if (life === 0) {
-            return getBgP(3, direction, 0);
+            return getBgP(3, direction, 0, 0);
           }
 
           if (direction === 0) {
@@ -1689,7 +1688,7 @@
 
         case 5:
           if (life === 0) {
-            return getBgP(3, direction, 0);
+            return getBgP(3, direction, 0, 0);
           }
 
           if (life === 1) {
@@ -1714,14 +1713,26 @@
   }
 
   function getFrame(type, direction, life) {
-    var p = getBgP(type, direction, 0, life).split(' ');
-    p = parseInt(p[0]);
-    var p2 = p - 34;
+    var p = getBgP(type, direction, 0, life);
+    var p2 = p.split(' ').map(function (i) {
+      return parseInt(i);
+    });
+    p2[0] -= 34;
     return [{
-      backgroundPositionX: p
+      backgroundPosition: p
     }, {
-      backgroundPositionX: p2
-    }];
+      backgroundPosition: p2.join(' ')
+    }]; // let p = getBgP(type, direction, 0, life).split(' ');
+    // p = parseInt(p[0]);
+    // let p2 = p - 34;
+    // return [
+    //   {
+    //     backgroundPositionX: p,
+    //   },
+    //   {
+    //     backgroundPositionX: p2,
+    //   },
+    // ];
   }
 
   var Enemy = /*#__PURE__*/function (_karas$Component) {
@@ -1815,16 +1826,17 @@
                     tank.updateStyle({
                       backgroundPosition: p
                     });
+                    tank.clearAnimate();
 
                     if (red) {
-                      var p2 = getBgP(type, direction, 0, life);
+                      var p2 = getBgP(type, direction, 1, life);
                       tank.children[0].updateStyle({
                         backgroundPosition: p2
                       });
-                      tank.clearAnimate();
                     }
 
-                    tank.animate(getFrame(type, direction, life), {
+                    var frame = getFrame(type, direction, life);
+                    tank.animate(frame, {
                       duration: 100,
                       iterations: Infinity,
                       easing: 'steps(1)',
@@ -1898,17 +1910,25 @@
 
             for (var j = 0, len2 = data.length; j < len2; j++) {
               if (item === data[j]) {
-                var tank = _this2.ref['tank' + j]; // 红先消失
+                var tank = _this2.ref['tank' + i]; // 红先消失
 
                 if (item[9]) {
                   item[9] = 0;
-                  console.log(j, tank);
                   tank.children[0].clearAnimate();
                   tank.children[0].updateStyle({
                     display: 'none'
                   });
                 } // 厚tank减皮
-                else if (item[10]--) ; // 其它挂
+                else if (item[10]--) {
+                    tank.clearAnimate();
+                    var frame = getFrame(item[2], item[4], item[10]);
+                    tank.animate(frame, {
+                      duration: 100,
+                      iterations: Infinity,
+                      easing: 'steps(1)',
+                      direction: 'alternate'
+                    });
+                  } // 其它挂
                   else {
                       item[3] = 2;
 
@@ -1946,9 +1966,8 @@
               state = _item2[3],
               direction = _item2[4],
               px = _item2[5],
-              py = _item2[6];
+              py = _item2[6]; // 死tank
 
-          var life = item[10]; // 死tank
 
           if (state === 2) {
             return null;
@@ -1978,11 +1997,12 @@
             item[10] = item[2] > 3 ? item[2] - 3 : 0; // 3厚tank，4,5加厚tank
           }
 
+          var life = item[10];
           var red = item[9];
           var p = getBgP(type, direction, red, life);
 
           if (red) {
-            var p2 = getBgP(type, direction, 0, life);
+            var p2 = getBgP(type, direction, 1, life);
             return karas$1.createElement("div", {
               ref: 'tank' + i,
               key: i,
@@ -2446,7 +2466,14 @@
             var enemy = checkHitEnemy(position, direction, d.x, d.y, data.current.enemy);
 
             if (enemy) {
-              eventBus.activeEnemyNum -= enemy.length;
+              var n = 0; // 红和厚不减
+
+              enemy.forEach(function (item) {
+                if (!item[10] && !item[9]) {
+                  n++;
+                }
+              });
+              eventBus.activeEnemyNum -= n;
               emitHit(node, id, direction, d.x, d.y, eventBus.HIT_ENEMY, enemy);
             }
 

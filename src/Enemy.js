@@ -145,7 +145,7 @@ function getBgP(type, direction, red, life) {
         break;
       case 4:
         if(life === 0) {
-          return getBgP(3, direction, 0);
+          return getBgP(3, direction, 0, 0);
         }
         if(direction === 0) {
           p = '-816 0';
@@ -162,7 +162,7 @@ function getBgP(type, direction, red, life) {
         break;
       case 5:
         if(life === 0) {
-          return getBgP(3, direction, 0);
+          return getBgP(3, direction, 0, 0);
         }
         if(life === 1) {
           return getBgP(4, direction, 0, 1);
@@ -186,17 +186,28 @@ function getBgP(type, direction, red, life) {
 }
 
 function getFrame(type, direction, life) {
-  let p = getBgP(type, direction, 0, life).split(' ');
-  p = parseInt(p[0]);
-  let p2 = p - 34;
+  let p = getBgP(type, direction, 0, life);
+  let p2 = p.split(' ').map(i => parseInt(i));
+  p2[0] -= 34;
   return [
     {
-      backgroundPositionX: p,
+      backgroundPosition: p,
     },
     {
-      backgroundPositionX: p2,
+      backgroundPosition: p2.join(' '),
     },
   ];
+  // let p = getBgP(type, direction, 0, life).split(' ');
+  // p = parseInt(p[0]);
+  // let p2 = p - 34;
+  // return [
+  //   {
+  //     backgroundPositionX: p,
+  //   },
+  //   {
+  //     backgroundPositionX: p2,
+  //   },
+  // ];
 }
 
 class Enemy extends karas.Component {
@@ -260,14 +271,15 @@ class Enemy extends karas.Component {
                 tank.updateStyle({
                   backgroundPosition: p,
                 });
+                tank.clearAnimate();
                 if(red) {
-                  let p2 = getBgP(type, direction, 0, life);
+                  let p2 = getBgP(type, direction, 1, life);
                   tank.children[0].updateStyle({
                     backgroundPosition: p2,
                   });
-                  tank.clearAnimate();
                 }
-                tank.animate(getFrame(type, direction, life), {
+                let frame = getFrame(type, direction, life);
+                tank.animate(frame, {
                   duration: 100,
                   iterations: Infinity,
                   easing: 'steps(1)',
@@ -341,10 +353,10 @@ class Enemy extends karas.Component {
         let item = list[i];
         for(let j = 0, len2 = data.length; j < len2; j++) {
           if(item === data[j]) {
-            let tank = this.ref['tank' + j];
+            let tank = this.ref['tank' + i];
             // 红先消失
             if(item[9]) {
-              item[9] = 0; console.log(j, tank);
+              item[9] = 0;
               tank.children[0].clearAnimate();
               tank.children[0].updateStyle({
                 display: 'none',
@@ -352,7 +364,14 @@ class Enemy extends karas.Component {
             }
             // 厚tank减皮
             else if(item[10]--) {
-              //
+              tank.clearAnimate();
+              let frame = getFrame(item[2], item[4], item[10]);
+              tank.animate(frame, {
+                duration: 100,
+                iterations: Infinity,
+                easing: 'steps(1)',
+                direction: 'alternate',
+              });
             }
             // 其它挂
             else {
@@ -383,7 +402,6 @@ class Enemy extends karas.Component {
       {
         this.state.list.map((item, i) => {
           let [tx, ty, type, state, direction, px, py] = item;
-          let life = item[10];
           // 死tank
           if(state === 2) {
             return null;
@@ -405,10 +423,11 @@ class Enemy extends karas.Component {
             item[9] = i && i % 5 === 0 ? 1 : 0; // 每5出红
             item[10] = item[2] > 3 ? item[2] - 3 : 0; // 3厚tank，4,5加厚tank
           }
+          let life = item[10];
           let red = item[9];
           let p = getBgP(type, direction, red, life);
           if(red) {
-            let p2 = getBgP(type, direction, 0, life);
+            let p2 = getBgP(type, direction, 1, life);
             return <div ref={'tank' + i}
                         key={i}
                         style={{
