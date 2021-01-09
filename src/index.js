@@ -12,72 +12,74 @@ import Hit from './Hit';
 import Boom from './Boom';
 import eventBus from './eventBus';
 import data from './data';
-
+import sound from './Sound';
+sound.mute();
 let root = karas.render(
   <canvas width={600} height={600} cache="1">
-    <Box ref="box"/>
-    <Brick ref="brick"/>
-    <Iron ref="iron"/>
-    <Player ref="player"/>
-    <Enemy ref="enemy"/>
-    <Fade ref="fade"/>
-    <Bullet ref="bullet"/>
-    <Boom ref="boom"/>
-    <Hit ref="hit"/>
-    <Menu ref="menu"/>
-    <StageNum ref="stageNum"/>
-    <GameOver ref="gameOver"/>
+    <Box ref="box" />
+    <Brick ref="brick" />
+    <Iron ref="iron" />
+    <Player ref="player" />
+    <Enemy ref="enemy" />
+    <Fade ref="fade" />
+    <Bullet ref="bullet" />
+    <Boom ref="boom" />
+    <Hit ref="hit" />
+    <Menu ref="menu" />
+    <StageNum ref="stageNum" />
+    <GameOver ref="gameOver" />
   </canvas>,
   '#canvas'
 );
 
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
   let keyCode = e.keyCode;
   // console.warn(e.keyCode, eventBus.gameState);
   // 菜单进入，快速进入完毕
-  if(eventBus.gameState === eventBus.BEFORE_MENU) {
-    if(e.keyCode === 74) {
+  if (eventBus.gameState === eventBus.BEFORE_MENU) {
+    if (e.keyCode === 74) {
       root.ref.menu.fastShow();
     }
   }
   // 菜单选择
-  else if(eventBus.gameState === eventBus.MENUING) {
-    if(keyCode === 87 || keyCode === 83) {
+  else if (eventBus.gameState === eventBus.MENUING) {
+    if (keyCode === 87 || keyCode === 83) {
       root.ref.menu.altPlayerNum();
     }
     // 开始游戏，赋予data的current为第1局数值
-    else if(e.keyCode === 74) {
+    else if (e.keyCode === 74) {
       eventBus.gameState = eventBus.BEFORE_GAME;
+      eventBus.emit(eventBus.BEFORE_GAME);
       root.ref.stageNum.show(1);
       data.current = karas.util.clone(data[0]);
-      if(eventBus.playerNum === 1) {
+      if (eventBus.playerNum === 1) {
         data.current.player.splice(1);
       }
     }
   }
   // 游戏控制
-  else if(eventBus.gameState === eventBus.GAMEING) {
-    if(keyCode === 87) {
+  else if (eventBus.gameState === eventBus.GAMEING) {
+    if (keyCode === 87) {
       root.ref.player.move(0, 0);
     }
-    else if(keyCode === 68) {
+    else if (keyCode === 68) {
       root.ref.player.move(0, 1);
     }
-    else if(keyCode === 83) {
+    else if (keyCode === 83) {
       root.ref.player.move(0, 2);
     }
-    else if(keyCode === 65) {
+    else if (keyCode === 65) {
       root.ref.player.move(0, 3);
     }
     // p1开火
-    else if(keyCode === 74) {
+    else if (keyCode === 74) {
       let position = root.ref.player.getPosition(0);
       let direction = root.ref.player.getDirection(0);
       root.ref.bullet.move(0, position.slice(0), direction);
     }
   }
-  else if(eventBus.gameState === eventBus.GAME_OVER_WAIT) {
-    if(keyCode === 74) {
+  else if (eventBus.gameState === eventBus.GAME_OVER_WAIT) {
+    if (keyCode === 74) {
       root.ref.player.setState({
         show: false,
         list: [],
@@ -109,19 +111,19 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-document.addEventListener('keyup', function(e) {
+document.addEventListener('keyup', function (e) {
   let keyCode = e.keyCode;
-  if(eventBus.gameState === eventBus.GAMEING) {
-    if(keyCode === 87) {
+  if (eventBus.gameState === eventBus.GAMEING) {
+    if (keyCode === 87) {
       root.ref.player.stop(0);
     }
-    else if(keyCode === 68) {
+    else if (keyCode === 68) {
       root.ref.player.stop(0);
     }
-    else if(keyCode === 83) {
+    else if (keyCode === 83) {
       root.ref.player.stop(0);
     }
-    else if(keyCode === 65) {
+    else if (keyCode === 65) {
       root.ref.player.stop(0);
     }
   }
@@ -133,51 +135,51 @@ let s = document.querySelector('#s');
 let d = document.querySelector('#d');
 let j = document.querySelector('#j');
 
-w.addEventListener('touchstart', function() {
-  if(eventBus.gameState === eventBus.MENUING) {
+w.addEventListener('touchstart', function () {
+  if (eventBus.gameState === eventBus.MENUING) {
     root.ref.menu.altPlayerNum();
   }
-  else if(eventBus.gameState === eventBus.GAMEING) {
+  else if (eventBus.gameState === eventBus.GAMEING) {
     root.ref.player.move(0, 0);
   }
 });
 
-a.addEventListener('touchstart', function() {
-  if(eventBus.gameState === eventBus.GAMEING) {
+a.addEventListener('touchstart', function () {
+  if (eventBus.gameState === eventBus.GAMEING) {
     root.ref.player.move(0, 3);
   }
 });
 
-s.addEventListener('touchstart', function() {
-  if(eventBus.gameState === eventBus.MENUING) {
+s.addEventListener('touchstart', function () {
+  if (eventBus.gameState === eventBus.MENUING) {
     root.ref.menu.altPlayerNum();
   }
-  else if(eventBus.gameState === eventBus.GAMEING) {
+  else if (eventBus.gameState === eventBus.GAMEING) {
     root.ref.player.move(0, 2);
   }
 });
 
-d.addEventListener('touchstart', function() {
-  if(eventBus.gameState === eventBus.GAMEING) {
+d.addEventListener('touchstart', function () {
+  if (eventBus.gameState === eventBus.GAMEING) {
     root.ref.player.move(0, 1);
   }
 });
 
-j.addEventListener('touchstart', function() {
-  if(eventBus.gameState === eventBus.BEFORE_MENU) {
+j.addEventListener('touchstart', function () {
+  if (eventBus.gameState === eventBus.BEFORE_MENU) {
     root.ref.menu.fastShow();
   }
-  else if(eventBus.gameState === eventBus.MENUING) {
+  else if (eventBus.gameState === eventBus.MENUING) {
     eventBus.gameState = eventBus.BEFORE_GAME;
     root.ref.stageNum.show(1);
     data.current = karas.util.clone(data[0]);
   }
-  else if(eventBus.gameState === eventBus.GAMEING) {
+  else if (eventBus.gameState === eventBus.GAMEING) {
     let position = root.ref.player.getPosition(0);
     let direction = root.ref.player.getDirection(0);
     root.ref.bullet.move(0, position.slice(0), direction);
   }
-  else if(eventBus.gameState === eventBus.GAME_OVER_WAIT) {
+  else if (eventBus.gameState === eventBus.GAME_OVER_WAIT) {
     root.ref.player.setState({
       show: false,
       list: [],
@@ -208,26 +210,26 @@ j.addEventListener('touchstart', function() {
   }
 });
 
-w.addEventListener('touchend', function() {
-  if(eventBus.gameState === eventBus.GAMEING) {
+w.addEventListener('touchend', function () {
+  if (eventBus.gameState === eventBus.GAMEING) {
     root.ref.player.stop(0);
   }
 });
 
-a.addEventListener('touchend', function() {
-  if(eventBus.gameState === eventBus.GAMEING) {
+a.addEventListener('touchend', function () {
+  if (eventBus.gameState === eventBus.GAMEING) {
     root.ref.player.stop(0);
   }
 });
 
-s.addEventListener('touchend', function() {
-  if(eventBus.gameState === eventBus.GAMEING) {
+s.addEventListener('touchend', function () {
+  if (eventBus.gameState === eventBus.GAMEING) {
     root.ref.player.stop(0);
   }
 });
 
-d.addEventListener('touchend', function() {
-  if(eventBus.gameState === eventBus.GAMEING) {
+d.addEventListener('touchend', function () {
+  if (eventBus.gameState === eventBus.GAMEING) {
     root.ref.player.stop(0);
   }
 });

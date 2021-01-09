@@ -9,6 +9,7 @@ export default [{
     sourcemap: true,
     globals: {
       karas: 'karas',
+      howler: 'howler',
     },
   },
   plugins: [

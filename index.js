@@ -481,6 +481,7 @@
 
         eventBus.on(eventBus.HIT_HOME, function () {
           eventBus.gameState = eventBus.GAME_OVER;
+          eventBus.emit(eventBus.GAME_OVER);
 
           _this2.setState({
             show: true
@@ -2564,6 +2565,98 @@
     return Boom;
   }(karas$1.Component);
 
+  var AudioController = /*#__PURE__*/function () {
+    function AudioController() {
+      _classCallCheck(this, AudioController);
+
+      this.initialSuccess = false;
+
+      try {
+        this.init();
+        this.initialSuccess = true;
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
+    _createClass(AudioController, [{
+      key: "init",
+      value: function init() {
+        var _this = this;
+
+        this.mainBGM = new Howl({
+          src: '../sound/start.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.hitBrick = new Howl({
+          src: '../sound/hit_brick.wav',
+          format: 'wav',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.hitIron = new Howl({
+          src: '../sound/hit_iron.wav',
+          format: 'wav',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.hitTank = new Howl({
+          src: '../sound/hit_tank.wav',
+          format: 'wav',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.hitHome = new Howl({
+          src: '../sound/hit_home.wav',
+          format: 'wav',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        eventBus.on(eventBus.BEFORE_GAME, function () {
+          _this.mainBGM.play();
+        });
+        eventBus.on(eventBus.HIT_BRICK, function () {
+          _this.hitBrick.play();
+        });
+        eventBus.on(eventBus.HIT_BOX, function () {
+          _this.hitBrick.play();
+        });
+        eventBus.on(eventBus.HIT_IRON, function () {
+          _this.hitIron.play();
+        });
+        eventBus.on(eventBus.HIT_ENEMY, function () {
+          _this.hitTank.play();
+        });
+        eventBus.on(eventBus.HIT_US, function () {
+          _this.hitHome.play();
+        });
+        eventBus.on(eventBus.GAME_OVER, function () {
+          _this.hitHome.play();
+        });
+      }
+    }, {
+      key: "play",
+      value: function play() {}
+    }, {
+      key: "mute",
+      value: function mute(muted) {
+        Howler.mute(muted);
+      }
+    }]);
+
+    return AudioController;
+  }();
+
+  var sound = new AudioController();
+
+  sound.mute();
   var root = karas.render(karas.createElement("canvas", {
     width: 600,
     height: 600,
@@ -2608,6 +2701,7 @@
         } // 开始游戏，赋予data的current为第1局数值
         else if (e.keyCode === 74) {
             eventBus.gameState = eventBus.BEFORE_GAME;
+            eventBus.emit(eventBus.BEFORE_GAME);
             root.ref.stageNum.show(1);
             data.current = karas.util.clone(data[0]);
 

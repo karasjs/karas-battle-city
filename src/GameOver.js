@@ -9,9 +9,11 @@ class GameOver extends karas.Component {
     };
   }
 
-  componentDidMount() {
+  componentDidMount () {
     eventBus.on(eventBus.HIT_HOME, () => {
       eventBus.gameState = eventBus.GAME_OVER;
+      eventBus.emit(eventBus.GAME_OVER);
+
       this.setState({
         show: true,
       }, () => {
@@ -31,7 +33,7 @@ class GameOver extends karas.Component {
     });
   }
 
-  render() {
+  render () {
     return <div style={{
       position: 'absolute',
       left: 0,
@@ -42,16 +44,16 @@ class GameOver extends karas.Component {
       translateY: '100%',
     }}>
       <span ref="text"
-            style={{
-              position: 'absolute',
-              left: '50%',
-              top: '50%',
-              width: 62,
-              height: 30,
-              background: 'url(tank.png) no-repeat -138 -137',
-              translateX: '-50%',
-              translateY: '-50%',
-            }}/>
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          width: 62,
+          height: 30,
+          background: 'url(tank.png) no-repeat -138 -137',
+          translateX: '-50%',
+          translateY: '-50%',
+        }} />
     </div>;
   }
 }
