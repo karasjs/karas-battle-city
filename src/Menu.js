@@ -4,7 +4,6 @@ import eventBus from './eventBus';
 class Menu extends karas.Component {
   constructor(props) {
     super(props);
-    this.playerNum = 1;
   }
 
   componentDidMount() {
@@ -65,7 +64,7 @@ class Menu extends karas.Component {
   }
 
   altPlayerNum() {
-    let n = this.playerNum = this.playerNum === 2 ? 1 : 2;
+    let n = eventBus.playerNum = eventBus.playerNum === 2 ? 1 : 2;
     if(n === 2) {
       this.ref.tank.updateStyle({
         translateY: 32,

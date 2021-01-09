@@ -50,6 +50,9 @@ document.addEventListener('keydown', function(e) {
       eventBus.gameState = eventBus.BEFORE_GAME;
       root.ref.stageNum.show(1);
       data.current = karas.util.clone(data[0]);
+      if(eventBus.playerNum === 1) {
+        data.current.player.splice(1);
+      }
     }
   }
   // 游戏控制

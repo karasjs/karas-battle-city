@@ -89,7 +89,7 @@ class Enemy extends karas.Component {
             let tank = this.ref['tank' + i];
             let movePx = MOVE_PX[type] || 1;
             // 积累一定随机时间后开火
-            let fire = --item[8];console.log(fire);
+            let fire = --item[8];
             if(fire === 0) {
               item[8] = ENEMY_FIRE_COUNT + Math.floor(Math.random() * ENEMY_FIRE_COUNT);
               eventBus.emit(eventBus.ENEMY_FIRE, i, [px, py], direction);

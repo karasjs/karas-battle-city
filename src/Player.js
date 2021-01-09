@@ -11,7 +11,7 @@ class Player extends karas.Component {
     super(props);
     this.state = {
       show: false,
-      list: [], // 0,1方块位置x,y；2命数，3状态012无保护定，4type,5,6坐标位置x,y
+      list: [], // 0,1方块位置x,y；2命数，3状态012无保定，4type,5,6坐标位置x,y
     };
   }
 
@@ -63,70 +63,72 @@ class Player extends karas.Component {
       });
     });
     eventBus.on(eventBus.HIT_US, (id, x, y, us) => {
-      us.forEach(item => {
-        let i;
-        if(item === this.state.list[0]) {
-          i = 0;
-        }
-        else if(item === this.state.list[1]) {
-          i = 1;
-        }
-        if(i !== undefined) {
-          let item = this.state.list[i];
-          let player = this.ref['player' + i];
-          if(item[3] === 1) {
-            return;
+      setTimeout(() => {
+        us.forEach(item => {
+          let i;
+          if(item === this.state.list[0]) {
+            i = 0;
           }
-          let life = item[2]--;
-          if(life < 0) {
+          else if(item === this.state.list[1]) {
+            i = 1;
+          }
+          if(i !== undefined) {
+            let item = this.state.list[i];
+            let player = this.ref['player' + i];
+            if(item[3] === 1) {
+              return;
+            }
+            let life = item[2]--;
+            if(life < 0) {
+              player.updateStyle({
+                visibility: 'hidden',
+              });
+              return;
+            }
+            eventBus.emit(eventBus.PLAY_REBONE, i);
+            let shield = this.ref['shield' + i];
+            item[3] = 1;
+            let tx = item[5] = item[0] * 16;
+            let ty = item[6] = item[1] * 16;
             player.updateStyle({
-              visibility: 'hidden',
+              translateX: tx,
+              translateY: ty,
             });
-            return;
+            player.clearAnimate();
+            let fadeIn = player.animate([
+              {
+                opacity: 0.85,
+              },
+              {
+                opacity: 0.7,
+              },
+            ], {
+              duration: 100,
+              iterations: 32,
+              direction: 'alternate',
+              easing: 'steps(2)',
+            });
+            fadeIn.on('finish', () => {
+              player.removeAnimate(fadeIn);
+              item[3] = 0;
+            });
+            shield.clearAnimate();
+            shield.animate([
+              {
+                backgroundPosition: '-442 -238',
+              },
+              {
+                backgroundPosition: '-510 -238',
+              },
+            ], {
+              duration: 100,
+              iterations: 32,
+              direction: 'alternate',
+              easing: 'steps(2)',
+            });
           }
-          eventBus.emit(eventBus.PLAY_REBONE, i);
-          let shield = this.ref['shield' + i];
-          item[3] = 1;
-          let tx = item[5] = item[0] * 16;
-          let ty = item[6] = item[1] * 16;
-          player.updateStyle({
-            translateX: tx,
-            translateY: ty,
-          });
-          player.clearAnimate();
-          let fadeIn = player.animate([
-            {
-              opacity: 0.85,
-            },
-            {
-              opacity: 0.7,
-            },
-          ], {
-            duration: 100,
-            iterations: 32,
-            direction: 'alternate',
-            easing: 'steps(2)',
-          });
-          fadeIn.on('finish', () => {
-            player.removeAnimate(fadeIn);
-            item[3] = 0;
-          });
-          shield.clearAnimate();
-          shield.animate([
-            {
-              backgroundPosition: '-442 -238',
-            },
-            {
-              backgroundPosition: '-510 -238',
-            },
-          ], {
-            duration: 100,
-            iterations: 32,
-            direction: 'alternate',
-            easing: 'steps(2)',
-          });
-        }
-      });
+        });
+      }, 200);
     });
     eventBus.on(eventBus.HIT_US_BY_US, (id, x, y, us) => {
       us.forEach(item => {

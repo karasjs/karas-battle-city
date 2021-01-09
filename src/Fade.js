@@ -22,7 +22,9 @@ class Fade extends karas.Component {
     });
     eventBus.on(eventBus.GAMEING, () => {
       this.show('player', 0);
-      this.show('player', 1);
+      if(eventBus.playerNum === 2) {
+        this.show('player', 1);
+      }
       let count = 0;
       let interval = setInterval(() => {
         if(eventBus.gameState !== eventBus.GAMEING) {

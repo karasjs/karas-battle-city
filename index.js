@@ -185,6 +185,7 @@
   eventBus.GAME_OVER_WAIT = 6;
   eventBus.gameState = eventBus.BEFORE_MENU;
   eventBus.activeEnemyNum = 0;
+  eventBus.playerNum = 1;
   eventBus.HIT_BOX = 'HIT_BOX';
   eventBus.HIT_BRICK = 'HIT_BRICK';
   eventBus.HIT_IRON = 'HIT_IRON';
@@ -202,19 +203,15 @@
     var _super = _createSuper(Menu);
 
     function Menu(props) {
-      var _this;
-
       _classCallCheck(this, Menu);
 
-      _this = _super.call(this, props);
-      _this.playerNum = 1;
-      return _this;
+      return _super.call(this, props);
     }
 
     _createClass(Menu, [{
       key: "componentDidMount",
       value: function componentDidMount() {
-        var _this2 = this;
+        var _this = this;
 
         var sr = this.shadowRoot;
         var tank = this.ref.tank;
@@ -227,7 +224,7 @@
         var tankAnimation; // 上移结束显示选择tank
 
         animation.on('finish', function () {
-          _this2.animation = null;
+          _this.animation = null;
           eventBus.emit(eventBus.MENUING);
           eventBus.gameState = eventBus.MENUING;
           tank.updateStyle({
@@ -244,7 +241,7 @@
         }); // 开始游戏隐藏
 
         eventBus.on(eventBus.WILL_GAME, function () {
-          _this2.updateStyle({
+          _this.updateStyle({
             visibility: 'hidden'
           });
 
@@ -271,7 +268,7 @@
     }, {
       key: "altPlayerNum",
       value: function altPlayerNum() {
-        var n = this.playerNum = this.playerNum === 2 ? 1 : 2;
+        var n = eventBus.playerNum = eventBus.playerNum === 2 ? 1 : 2;
 
         if (n === 2) {
           this.ref.tank.updateStyle({
@@ -812,7 +809,9 @@
         eventBus.on(eventBus.GAMEING, function () {
           _this2.show('player', 0);
 
-          _this2.show('player', 1);
+          if (eventBus.playerNum === 2) {
+            _this2.show('player', 1);
+          }
 
           var count = 0;
           var interval = setInterval(function () {
@@ -1113,7 +1112,7 @@
       _this = _super.call(this, props);
       _this.state = {
         show: false,
-        list: [] // 0,1方块位置x,y；2命数，3状态012无保护定，4type,5,6坐标位置x,y
+        list: [] // 0,1方块位置x,y；2命数，3状态012无保定，4type,5,6坐标位置x,y
 
       };
       return _this;
@@ -1166,69 +1165,71 @@
           });
         });
         eventBus.on(eventBus.HIT_US, function (id, x, y, us) {
-          us.forEach(function (item) {
-            var i;
+          setTimeout(function () {
+            us.forEach(function (item) {
+              var i;
 
-            if (item === _this2.state.list[0]) {
-              i = 0;
-            } else if (item === _this2.state.list[1]) {
-              i = 1;
-            }
-
-            if (i !== undefined) {
-              var _item = _this2.state.list[i];
-              var player = _this2.ref['player' + i];
-
-              if (_item[3] === 1) {
-                return;
+              if (item === _this2.state.list[0]) {
+                i = 0;
+              } else if (item === _this2.state.list[1]) {
+                i = 1;
               }
 
-              var life = _item[2]--;
+              if (i !== undefined) {
+                var _item = _this2.state.list[i];
+                var player = _this2.ref['player' + i];
 
-              if (life < 0) {
+                if (_item[3] === 1) {
+                  return;
+                }
+
+                var life = _item[2]--;
+
+                if (life < 0) {
+                  player.updateStyle({
+                    visibility: 'hidden'
+                  });
+                  return;
+                }
+
+                eventBus.emit(eventBus.PLAY_REBONE, i);
+                var shield = _this2.ref['shield' + i];
+                _item[3] = 1;
+                var tx = _item[5] = _item[0] * 16;
+                var ty = _item[6] = _item[1] * 16;
                 player.updateStyle({
-                  visibility: 'hidden'
+                  translateX: tx,
+                  translateY: ty
                 });
-                return;
+                player.clearAnimate();
+                var fadeIn = player.animate([{
+                  opacity: 0.85
+                }, {
+                  opacity: 0.7
+                }], {
+                  duration: 100,
+                  iterations: 32,
+                  direction: 'alternate',
+                  easing: 'steps(2)'
+                });
+                fadeIn.on('finish', function () {
+                  player.removeAnimate(fadeIn);
+                  _item[3] = 0;
+                });
+                shield.clearAnimate();
+                shield.animate([{
+                  backgroundPosition: '-442 -238'
+                }, {
+                  backgroundPosition: '-510 -238'
+                }], {
+                  duration: 100,
+                  iterations: 32,
+                  direction: 'alternate',
+                  easing: 'steps(2)'
+                });
               }
-
-              eventBus.emit(eventBus.PLAY_REBONE, i);
-              var shield = _this2.ref['shield' + i];
-              _item[3] = 1;
-              var tx = _item[5] = _item[0] * 16;
-              var ty = _item[6] = _item[1] * 16;
-              player.updateStyle({
-                translateX: tx,
-                translateY: ty
-              });
-              player.clearAnimate();
-              var fadeIn = player.animate([{
-                opacity: 0.85
-              }, {
-                opacity: 0.7
-              }], {
-                duration: 100,
-                iterations: 32,
-                direction: 'alternate',
-                easing: 'steps(2)'
-              });
-              fadeIn.on('finish', function () {
-                player.removeAnimate(fadeIn);
-                _item[3] = 0;
-              });
-              shield.clearAnimate();
-              shield.animate([{
-                backgroundPosition: '-442 -238'
-              }, {
-                backgroundPosition: '-510 -238'
-              }], {
-                duration: 100,
-                iterations: 32,
-                direction: 'alternate',
-                easing: 'steps(2)'
-              });
-            }
-          });
+            });
+          }, 200);
         });
         eventBus.on(eventBus.HIT_US_BY_US, function (id, x, y, us) {
           us.forEach(function (item) {
@@ -1640,7 +1641,6 @@
                 var movePx = MOVE_PX$1[type] || 1; // 积累一定随机时间后开火
 
                 var fire = --item[8];
-                console.log(fire);
 
                 if (fire === 0) {
                   item[8] = ENEMY_FIRE_COUNT + Math.floor(Math.random() * ENEMY_FIRE_COUNT);
@@ -2610,6 +2610,10 @@
             eventBus.gameState = eventBus.BEFORE_GAME;
             root.ref.stageNum.show(1);
             data.current = karas.util.clone(data[0]);
+
+            if (eventBus.playerNum === 1) {
+              data.current.player.splice(1);
+            }
           }
       } // 游戏控制
       else if (eventBus.gameState === eventBus.GAMEING) {
