@@ -45,7 +45,7 @@ class GameOver extends karas.Component {
             style={{
               position: 'absolute',
               left: '50%',
-              top: '50%',
+              top: '40%',
               width: 62,
               height: 30,
               background: 'url(tank.png) no-repeat -138 -137',

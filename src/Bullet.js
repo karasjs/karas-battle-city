@@ -80,7 +80,7 @@ function checkHitEnemy(position, direction, dx, dy, list) {
   let res = [];
   for(let i = 0, len = list.length; i < len; i++) {
     let item = list[i];
-    // 只检查老tank，防止死tank和新tank和无和等
+    // 只检查老tank，防止死tank和新tank
     if(item[3] !== 1) {
       continue;
     }

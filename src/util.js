@@ -72,7 +72,7 @@ function checkEnemy(tx1, ty1, direction, index, list) {
       continue;
     }
     let item = list[i];
-    // 死tank或无
+    // 死tank
     if(item[3] === 2) {
       continue;
     }

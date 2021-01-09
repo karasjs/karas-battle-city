@@ -169,7 +169,7 @@
       "iron": [[30, 15], [29, 15], [6, 15], [5, 15], [17, 7], [18, 7], [18, 8], [17, 8]],
       "home": [[17, 26]],
       "player": [[13, 26, 2, 1], [21, 26, 2, 1]],
-      "enemy": [[5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0]],
+      "enemy": [[5, 2, 1, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 3, 0], [17, 2, 4, 0], [29, 2, 5, 0]],
       "box": [5, 2, 31, 28]
     },
     current: null
@@ -196,6 +196,7 @@
   eventBus.ADD_ENEMY = 'ADD_ENEMY';
   eventBus.ENEMY_FIRE = 'ENEMY_FIRE';
   eventBus.PLAY_REBONE = 'PLAY_REBONE';
+  eventBus.BOOM = 'BOOM';
 
   var Menu = /*#__PURE__*/function (_karas$Component) {
     _inherits(Menu, _karas$Component);
@@ -516,7 +517,7 @@
           style: {
             position: 'absolute',
             left: '50%',
-            top: '50%',
+            top: '40%',
             width: 62,
             height: 30,
             background: 'url(tank.png) no-repeat -138 -137',
@@ -821,7 +822,7 @@
             } // 限制数量
 
 
-            if (eventBus.activeEnemyNum >= 5) {
+            if (eventBus.activeEnemyNum >= data.current.enemy.length) {
               return;
             }
 
@@ -833,7 +834,7 @@
 
             _this2.show('enemy', id % 3);
 
-            if (count >= 6) {
+            if (count >= 4) {
               clearInterval(interval);
             }
           }, 3000);
@@ -985,7 +986,7 @@
         continue;
       }
 
-      var item = list[i]; // 死tank或无
+      var item = list[i]; // 死tank
 
       if (item[3] === 2) {
         continue;
@@ -1165,71 +1166,75 @@
           });
         });
         eventBus.on(eventBus.HIT_US, function (id, x, y, us) {
-          setTimeout(function () {
-            us.forEach(function (item) {
-              var i;
+          us.forEach(function (item) {
+            var i;
 
-              if (item === _this2.state.list[0]) {
-                i = 0;
-              } else if (item === _this2.state.list[1]) {
-                i = 1;
+            if (item === _this2.state.list[0]) {
+              i = 0;
+            } else if (item === _this2.state.list[1]) {
+              i = 1;
+            }
+
+            if (i !== undefined) {
+              var _item = _this2.state.list[i];
+              eventBus.emit(eventBus.BOOM, _item[5] + 16, _item[6] + 16);
+              var player = _this2.ref['player' + i];
+              var tank = _this2.ref['tank' + i];
+
+              if (_item[3] === 1) {
+                return;
               }
 
-              if (i !== undefined) {
-                var _item = _this2.state.list[i];
-                var player = _this2.ref['player' + i];
+              var life = _item[2]--;
 
-                if (_item[3] === 1) {
-                  return;
-                }
-
-                var life = _item[2]--;
-
-                if (life < 0) {
-                  player.updateStyle({
-                    visibility: 'hidden'
-                  });
-                  return;
-                }
-
-                eventBus.emit(eventBus.PLAY_REBONE, i);
-                var shield = _this2.ref['shield' + i];
-                _item[3] = 1;
-                var tx = _item[5] = _item[0] * 16;
-                var ty = _item[6] = _item[1] * 16;
+              if (life < 0) {
                 player.updateStyle({
-                  translateX: tx,
-                  translateY: ty
+                  visibility: 'hidden'
                 });
-                player.clearAnimate();
-                var fadeIn = player.animate([{
-                  opacity: 0.85
-                }, {
-                  opacity: 0.7
-                }], {
-                  duration: 100,
-                  iterations: 32,
-                  direction: 'alternate',
-                  easing: 'steps(2)'
-                });
-                fadeIn.on('finish', function () {
-                  player.removeAnimate(fadeIn);
-                  _item[3] = 0;
-                });
-                shield.clearAnimate();
-                shield.animate([{
-                  backgroundPosition: '-442 -238'
-                }, {
-                  backgroundPosition: '-510 -238'
-                }], {
-                  duration: 100,
-                  iterations: 32,
-                  direction: 'alternate',
-                  easing: 'steps(2)'
-                });
+                return;
               }
-            });
-          }, 200);
+
+              _this2['playerCurrentD' + i] = null;
+              tank.updateStyle({
+                backgroundPositionX: 0
+              });
+              eventBus.emit(eventBus.PLAY_REBONE, i);
+              var shield = _this2.ref['shield' + i];
+              _item[3] = 1;
+              var tx = _item[5] = _item[0] * 16;
+              var ty = _item[6] = _item[1] * 16;
+              player.updateStyle({
+                translateX: tx,
+                translateY: ty
+              });
+              player.clearAnimate();
+              var fadeIn = player.animate([{
+                opacity: 0.85
+              }, {
+                opacity: 0.7
+              }], {
+                duration: 100,
+                iterations: 32,
+                direction: 'alternate',
+                easing: 'steps(2)'
+              });
+              fadeIn.on('finish', function () {
+                player.removeAnimate(fadeIn);
+                _item[3] = 0;
+              });
+              shield.clearAnimate();
+              shield.animate([{
+                backgroundPosition: '-442 -238'
+              }, {
+                backgroundPosition: '-510 -238'
+              }], {
+                duration: 100,
+                iterations: 32,
+                direction: 'alternate',
+                easing: 'steps(2)'
+              });
+            }
+          });
         });
         eventBus.on(eventBus.HIT_US_BY_US, function (id, x, y, us) {
           us.forEach(function (item) {
@@ -1332,6 +1337,7 @@
             }];
           }
 
+          console.warn(frame);
           tank.animate(frame, {
             duration: 100,
             iterations: Infinity,
@@ -1346,16 +1352,16 @@
         var cb = this['ma' + index];
         karas$1.animate.frame.offFrame(cb); // 检查是否被挡住
 
-        var item = this.state.list[index]; // 坦克坐标移动，没2帧移动1次2px，便于控制
+        var item = this.state.list[index]; // 坦克坐标移动，每2帧移动1次2px，便于控制
 
-        var frameDrop = 0;
+        var frameJump = 0;
 
         cb = this['ma' + index] = function () {
-          if (frameDrop++ < 1) {
+          if (frameJump++ < 1) {
             return;
           }
 
-          frameDrop = 0;
+          frameJump = 0;
 
           if (util.checkBox(item[5], item[6], direction, data.current.box)) {
             return;
@@ -1421,7 +1427,7 @@
         var y = item[6];
 
         if (currentD === 0) {
-          player.updateStyle({
+          tank.updateStyle({
             backgroundPositionX: 0
           });
 
@@ -1432,7 +1438,7 @@
             });
           }
         } else if (currentD === 1) {
-          player.updateStyle({
+          tank.updateStyle({
             backgroundPositionX: -68
           });
 
@@ -1443,7 +1449,7 @@
             });
           }
         } else if (currentD === 2) {
-          player.updateStyle({
+          tank.updateStyle({
             backgroundPositionX: -136
           });
 
@@ -1454,7 +1460,7 @@
             });
           }
         } else if (currentD === 3) {
-          player.updateStyle({
+          tank.updateStyle({
             backgroundPositionX: -204
           });
 
@@ -1535,61 +1541,187 @@
 
   var TURN_COUNT = {
     0: 32,
-    1: 8,
-    2: 48
+    1: 16,
+    2: 36,
+    3: 48,
+    4: 48,
+    5: 48
   };
   var MOVE_PX$1 = {
-    0: 1,
-    1: 2,
-    2: 1
+    0: 2,
+    1: 4,
+    2: 2,
+    3: 1,
+    4: 1,
+    5: 1
   };
   var ENEMY_FIRE_COUNT = 100;
 
-  function getBgP(type, direction) {
+  function getBgP(type, direction, red, life) {
     var p = '-136 -68';
 
-    switch (type) {
-      case 0:
-        if (direction === 0) {
-          p = '0 -68';
-        } else if (direction === 1) {
-          p = '-68 -68';
-        } else if (direction === 2) {
-          p = '-136 -68';
-        } else if (direction === 3) {
-          p = '-204 -68';
-        }
+    if (red) {
+      switch (type) {
+        case 0:
+          if (direction === 0) {
+            p = '0 -102';
+          } else if (direction === 1) {
+            p = '-68 -102';
+          } else if (direction === 2) {
+            p = '-136 -102';
+          } else if (direction === 3) {
+            p = '-204 -102';
+          }
 
-        break;
+          break;
 
-      case 1:
-        if (direction === 0) {
-          p = '-272 -68';
-        } else if (direction === 1) {
-          p = '-340 -68';
-        } else if (direction === 2) {
-          p = '-408 -68';
-        } else if (direction === 3) {
-          p = '-476 -68';
-        }
+        case 1:
+          if (direction === 0) {
+            p = '-272 -102';
+          } else if (direction === 1) {
+            p = '-340 -102';
+          } else if (direction === 2) {
+            p = '-408 -102';
+          } else if (direction === 3) {
+            p = '-476 -102';
+          }
 
-        break;
+          break;
 
-      case 2:
-        if (direction === 0) {
-          p = '-544 -68';
-        } else if (direction === 1) {
-          p = '-612 -68';
-        } else if (direction === 2) {
-          p = '-680 -68';
-        } else if (direction === 3) {
-          p = '-748 -68';
-        }
+        case 2:
+          if (direction === 0) {
+            p = '-544 -102';
+          } else if (direction === 1) {
+            p = '-612 -102';
+          } else if (direction === 2) {
+            p = '-680 -102';
+          } else if (direction === 3) {
+            p = '-748 -102';
+          }
 
-        break;
+          break;
+
+        case 3:
+        case 4:
+        case 5:
+          if (direction === 0) {
+            p = '-816 -102';
+          } else if (direction === 1) {
+            p = '-884 -102';
+          } else if (direction === 2) {
+            p = '-952 -102';
+          } else if (direction === 3) {
+            p = '-1020 -102';
+          }
+
+          break;
+      }
+    } else {
+      switch (type) {
+        case 0:
+          if (direction === 0) {
+            p = '0 -68';
+          } else if (direction === 1) {
+            p = '-68 -68';
+          } else if (direction === 2) {
+            p = '-136 -68';
+          } else if (direction === 3) {
+            p = '-204 -68';
+          }
+
+          break;
+
+        case 1:
+          if (direction === 0) {
+            p = '-272 -68';
+          } else if (direction === 1) {
+            p = '-340 -68';
+          } else if (direction === 2) {
+            p = '-408 -68';
+          } else if (direction === 3) {
+            p = '-476 -68';
+          }
+
+          break;
+
+        case 2:
+          if (direction === 0) {
+            p = '-544 -68';
+          } else if (direction === 1) {
+            p = '-612 -68';
+          } else if (direction === 2) {
+            p = '-680 -68';
+          } else if (direction === 3) {
+            p = '-748 -68';
+          }
+
+          break;
+
+        case 3:
+          if (direction === 0) {
+            p = '-816 -68';
+          } else if (direction === 1) {
+            p = '-884 -68';
+          } else if (direction === 2) {
+            p = '-952 -68';
+          } else if (direction === 3) {
+            p = '-1020 -68';
+          }
+
+          break;
+
+        case 4:
+          if (life === 0) {
+            return getBgP(3, direction, 0);
+          }
+
+          if (direction === 0) {
+            p = '-816 0';
+          } else if (direction === 1) {
+            p = '-884 0';
+          } else if (direction === 2) {
+            p = '-952 0';
+          } else if (direction === 3) {
+            p = '-1020 0';
+          }
+
+          break;
+
+        case 5:
+          if (life === 0) {
+            return getBgP(3, direction, 0);
+          }
+
+          if (life === 1) {
+            return getBgP(4, direction, 0, 1);
+          }
+
+          if (direction === 0) {
+            p = '-816 -34';
+          } else if (direction === 1) {
+            p = '-884 -34';
+          } else if (direction === 2) {
+            p = '-952 -34';
+          } else if (direction === 3) {
+            p = '-1020 -34';
+          }
+
+          break;
+      }
     }
 
     return p;
+  }
+
+  function getFrame(type, direction, life) {
+    var p = getBgP(type, direction, 0, life).split(' ');
+    p = parseInt(p[0]);
+    var p2 = p - 34;
+    return [{
+      backgroundPositionX: p
+    }, {
+      backgroundPositionX: p2
+    }];
   }
 
   var Enemy = /*#__PURE__*/function (_karas$Component) {
@@ -1605,7 +1737,7 @@
       _this = _super.call(this, props);
       _this.state = {
         show: false,
-        list: [] // 0,1方块位置x,y；2类型；3状态012新老死；4方向；5,6坐标位置x,y；7停止计时；8射击计时
+        list: [] // 0,1方块位置x,y；2类型；3状态012新老死；4方向；5,6坐标位置x,y；7停止计时；8射击计时；9红坦克；10血
 
       };
       return _this;
@@ -1623,7 +1755,15 @@
           }); // 坦克坐标移动
 
 
+          var frameJump = 0;
+
           var cb = _this2.cb = function () {
+            if (frameJump++ < 1) {
+              return;
+            }
+
+            frameJump = 0;
+
             _this2.state.list.forEach(function (item, i) {
               // console.log(item);
               var _item = _slicedToArray(item, 7),
@@ -1633,8 +1773,10 @@
                   state = _item[3],
                   direction = _item[4],
                   px = _item[5],
-                  py = _item[6]; // 防止死tank
+                  py = _item[6];
 
+              var red = item[9];
+              var life = item[10]; // 防止死tank
 
               if (state < 2) {
                 var tank = _this2.ref['tank' + i];
@@ -1648,10 +1790,12 @@
                 } // 检测移动，积累count到一定后没有一定随机更换方向
 
 
-                if (util.checkBox(px, py, direction, data.current.box) || util.checkMove(px, py, direction, data.current.brick) || util.checkMove(px, py, direction, data.current.iron) || util.checkEnemy(px, py, direction, i, data.current.enemy) || util.checkUs(px, py, direction, -1, data.current.player) || util.checkHome(px, py, direction, data.current.home)) {
+                if (util.checkBox(px, py, direction, data.current.box) || util.checkMove(px, py, direction, data.current.brick) || util.checkMove(px, py, direction, data.current.iron) // || util.checkEnemy(px, py, direction, i, data.current.enemy)
+                || util.checkUs(px, py, direction, -1, data.current.player) || util.checkHome(px, py, direction, data.current.home)) {
+                  // tank.clearAnimate();
                   var count = item[7]++;
 
-                  if (count >= TURN_COUNT[type] || 1) {
+                  if (count >= (TURN_COUNT[type] || 1)) {
                     item[7] = 0;
 
                     while (true) {
@@ -1667,9 +1811,24 @@
                       }
                     }
 
-                    var p = getBgP(type, direction);
+                    var p = getBgP(type, direction, red, life);
                     tank.updateStyle({
                       backgroundPosition: p
+                    });
+
+                    if (red) {
+                      var p2 = getBgP(type, direction, 0, life);
+                      tank.children[0].updateStyle({
+                        backgroundPosition: p2
+                      });
+                      tank.clearAnimate();
+                    }
+
+                    tank.animate(getFrame(type, direction, life), {
+                      duration: 100,
+                      iterations: Infinity,
+                      easing: 'steps(1)',
+                      direction: 'alternate'
                     });
                   }
 
@@ -1710,6 +1869,27 @@
 
           _this2.setState({
             list: list
+          }, function () {
+            var tank = _this2.ref['tank' + id]; // 红闪
+
+            if (item[9]) {
+              tank.children[0].animate([{}, {
+                visibility: 'visible'
+              }], {
+                duration: 80,
+                iterations: Infinity,
+                direction: 'alternate'
+              });
+            } // 移动
+
+
+            var frame = getFrame(item[2], item[4], item[10]);
+            tank.animate(frame, {
+              duration: 100,
+              iterations: Infinity,
+              easing: 'steps(1)',
+              direction: 'alternate'
+            });
           });
         });
         eventBus.on(eventBus.HIT_ENEMY, function (id, x, y, data) {
@@ -1718,11 +1898,26 @@
 
             for (var j = 0, len2 = data.length; j < len2; j++) {
               if (item === data[j]) {
-                item[3] = 2;
+                var tank = _this2.ref['tank' + j]; // 红先消失
 
-                _this2.setState({
-                  list: list
-                });
+                if (item[9]) {
+                  item[9] = 0;
+                  console.log(j, tank);
+                  tank.children[0].clearAnimate();
+                  tank.children[0].updateStyle({
+                    display: 'none'
+                  });
+                } // 厚tank减皮
+                else if (item[10]--) ; // 其它挂
+                  else {
+                      item[3] = 2;
+
+                      _this2.setState({
+                        list: list
+                      });
+
+                      eventBus.emit(eventBus.BOOM, item[5] + 16, item[6] + 16);
+                    }
               }
             }
           }
@@ -1751,8 +1946,9 @@
               state = _item2[3],
               direction = _item2[4],
               px = _item2[5],
-              py = _item2[6]; // 死tank
+              py = _item2[6];
 
+          var life = item[10]; // 死tank
 
           if (state === 2) {
             return null;
@@ -1765,9 +1961,8 @@
             var _i2 = Math.floor(Math.random() * list.length);
 
             direction = list[_i2];
-          }
+          } // 新出生的tank
 
-          var p = getBgP(type, direction); // 新出生的tank
 
           if (state === 0) {
             item[3] = 1; // 变老tank
@@ -1778,8 +1973,41 @@
             item[7] = 0; // 计时初始化
 
             item[8] = Math.floor(Math.random() * ENEMY_FIRE_COUNT);
-          } // 老tank
+            item[9] = i && i % 5 === 0 ? 1 : 0; // 每5出红
 
+            item[10] = item[2] > 3 ? item[2] - 3 : 0; // 3厚tank，4,5加厚tank
+          }
+
+          var red = item[9];
+          var p = getBgP(type, direction, red, life);
+
+          if (red) {
+            var p2 = getBgP(type, direction, 0, life);
+            return karas$1.createElement("div", {
+              ref: 'tank' + i,
+              key: i,
+              style: {
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                width: 32,
+                height: 32,
+                translateX: px,
+                translateY: py,
+                background: "url(tank.png) no-repeat ".concat(p)
+              }
+            }, karas$1.createElement("span", {
+              style: {
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                width: '100%',
+                height: '100%',
+                background: "url(tank.png) no-repeat ".concat(p2),
+                visibility: 'hidden'
+              }
+            }));
+          }
 
           return karas$1.createElement("div", {
             ref: 'tank' + i,
@@ -1898,7 +2126,7 @@
     var res = [];
 
     for (var i = 0, len = list.length; i < len; i++) {
-      var item = list[i]; // 只检查老tank，防止死tank和新tank和无和等
+      var item = list[i]; // 只检查老tank，防止死tank和新tank
 
       if (item[3] !== 1) {
         continue;
@@ -2422,73 +2650,31 @@
       value: function componentDidMount() {
         var _this2 = this;
 
-        eventBus.on(eventBus.HIT_ENEMY, function (id, x, y, enemy) {
+        eventBus.on(eventBus.BOOM, function (x, y) {
           var hash = _this2.state.hash;
-          enemy.forEach(function (item) {
-            hash[id] = {
-              x: item[5] + 16,
-              y: item[6] + 16
-            };
+          var id = x + ',' + y;
+          hash[id] = {
+            x: x,
+            y: y
+          };
 
-            _this2.setState({
-              hash: hash
-            }, function () {
-              var node = _this2.ref[id];
-              var a = node.animate([{
-                visibility: 'visible'
-              }, {
-                visibility: 'visible',
-                backgroundPosition: '-851px -137px'
-              }], {
-                duration: 100,
-                iterations: 3,
-                direction: 'alternate',
-                easing: 'steps(1)'
-              });
-              a.on('finish', function () {
-                delete hash[id];
-
-                _this2.setState({
-                  hash: hash
-                });
-              });
+          _this2.setState({
+            hash: hash
+          }, function () {
+            var node = _this2.ref[id];
+            var a = node.animate([{}, {
+              backgroundPosition: '-851px -137px'
+            }], {
+              duration: 100,
+              iterations: 3,
+              direction: 'alternate',
+              easing: 'steps(1)'
             });
-          });
-        });
-        eventBus.on(eventBus.HIT_US, function (id, x, y, us) {
-          var hash = _this2.state.hash;
-          us.forEach(function (item) {
-            // 保护状态
-            if (item[3] === 1) {
-              return;
-            }
+            a.on('finish', function () {
+              delete hash[id];
 
-            hash[id] = {
-              x: item[5] + 16,
-              y: item[6] + 16
-            };
-
-            _this2.setState({
-              hash: hash
-            }, function () {
-              var node = _this2.ref[id];
-              var a = node.animate([{
-                visibility: 'visible'
-              }, {
-                visibility: 'visible',
-                backgroundPosition: '-851px -137px'
-              }], {
-                duration: 100,
-                iterations: 3,
-                direction: 'alternate',
-                easing: 'steps(1)'
-              });
-              a.on('finish', function () {
-                delete hash[id];
-
-                _this2.setState({
-                  hash: hash
-                });
+              _this2.setState({
+                hash: hash
               });
             });
           });
@@ -2505,10 +2691,7 @@
               hash: hash
             }, function () {
               var node = _this2.ref[id];
-              var a = node.animate([{
-                visibility: 'visible'
-              }, {
-                visibility: 'visible',
+              var a = node.animate([{}, {
                 backgroundPosition: '-851px -137px'
               }], {
                 duration: 100,
@@ -2553,8 +2736,7 @@
               height: 64,
               translateX: '-50%',
               translateY: '-50%',
-              background: 'url(tank.png) no-repeat -783px -137px',
-              visibility: 'hidden'
+              background: 'url(tank.png) no-repeat -783px -137px'
             }
           });
         }));

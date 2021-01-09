@@ -10,74 +10,33 @@ class Boom extends karas.Component {
   }
 
   componentDidMount() {
-    eventBus.on(eventBus.HIT_ENEMY, (id, x, y, enemy) => {
+    eventBus.on(eventBus.BOOM, (x, y) => {
       let hash = this.state.hash;
-      enemy.forEach(item => {
-        hash[id] = {
-          x: item[5] + 16,
-          y: item[6] + 16,
-        };
-        this.setState({
-          hash,
-        }, () => {
-          let node = this.ref[id];
-          let a = node.animate([
-            {
-              visibility: 'visible',
-            },
-            {
-              visibility: 'visible',
-              backgroundPosition: '-851px -137px',
-            },
-          ], {
-            duration: 100,
-            iterations: 3,
-            direction: 'alternate',
-            easing: 'steps(1)',
-          });
-          a.on('finish', () => {
-            delete hash[id];
-            this.setState({
-              hash,
-            });
-          });
+      let id = x + ',' + y;
+      hash[id] = {
+        x,
+        y,
+      };
+      this.setState({
+        hash,
+      }, () => {
+        let node = this.ref[id];
+        let a = node.animate([
+          {
+          },
+          {
+            backgroundPosition: '-851px -137px',
+          },
+        ], {
+          duration: 100,
+          iterations: 3,
+          direction: 'alternate',
+          easing: 'steps(1)',
         });
-      });
-    });
-    eventBus.on(eventBus.HIT_US, (id, x, y, us) => {
-      let hash = this.state.hash;
-      us.forEach(item => {
-        // 保护状态
-        if(item[3] === 1) {
-          return;
-        }
-        hash[id] = {
-          x: item[5] + 16,
-          y: item[6] + 16,
-        };
-        this.setState({
-          hash,
-        }, () => {
-          let node = this.ref[id];
-          let a = node.animate([
-            {
-              visibility: 'visible',
-            },
-            {
-              visibility: 'visible',
-              backgroundPosition: '-851px -137px',
-            },
-          ], {
-            duration: 100,
-            iterations: 3,
-            direction: 'alternate',
-            easing: 'steps(1)',
-          });
-          a.on('finish', () => {
-            delete hash[id];
-            this.setState({
-              hash,
-            });
+        a.on('finish', () => {
+          delete hash[id];
+          this.setState({
+            hash,
           });
         });
       });
@@ -95,10 +54,8 @@ class Boom extends karas.Component {
           let node = this.ref[id];
           let a = node.animate([
             {
-              visibility: 'visible',
             },
             {
-              visibility: 'visible',
               backgroundPosition: '-851px -137px',
             },
           ], {
@@ -140,7 +97,6 @@ class Boom extends karas.Component {
                          translateX: '-50%',
                          translateY: '-50%',
                          background: 'url(tank.png) no-repeat -783px -137px',
-                         visibility: 'hidden',
                        }}/>;
         })
       }
