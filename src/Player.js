@@ -63,72 +63,76 @@ class Player extends karas.Component {
       });
     });
     eventBus.on(eventBus.HIT_US, (id, x, y, us) => {
-      setTimeout(() => {
-        us.forEach(item => {
-          let i;
-          if(item === this.state.list[0]) {
-            i = 0;
+      us.forEach(item => {
+        let i;
+        if(item === this.state.list[0]) {
+          i = 0;
+        }
+        else if(item === this.state.list[1]) {
+          i = 1;
+        }
+        if(i !== undefined) {
+          let item = this.state.list[i];
+          eventBus.emit(eventBus.BOOM, item[5] + 16, item[6] + 16);
+          let player = this.ref['player' + i];
+          let tank = this.ref['tank' + i];
+          if(item[3] === 1) {
+            return;
           }
-          else if(item === this.state.list[1]) {
-            i = 1;
-          }
-          if(i !== undefined) {
-            let item = this.state.list[i];
-            let player = this.ref['player' + i];
-            if(item[3] === 1) {
-              return;
-            }
-            let life = item[2]--;
-            if(life < 0) {
-              player.updateStyle({
-                visibility: 'hidden',
-              });
-              return;
-            }
-            eventBus.emit(eventBus.PLAY_REBONE, i);
-            let shield = this.ref['shield' + i];
-            item[3] = 1;
-            let tx = item[5] = item[0] * 16;
-            let ty = item[6] = item[1] * 16;
+          let life = item[2]--;
+          if(life < 0) {
             player.updateStyle({
-              translateX: tx,
-              translateY: ty,
+              visibility: 'hidden',
             });
-            player.clearAnimate();
-            let fadeIn = player.animate([
-              {
-                opacity: 0.85,
-              },
-              {
-                opacity: 0.7,
-              },
-            ], {
-              duration: 100,
-              iterations: 32,
-              direction: 'alternate',
-              easing: 'steps(2)',
-            });
-            fadeIn.on('finish', () => {
-              player.removeAnimate(fadeIn);
-              item[3] = 0;
-            });
-            shield.clearAnimate();
-            shield.animate([
-              {
-                backgroundPosition: '-442 -238',
-              },
-              {
-                backgroundPosition: '-510 -238',
-              },
-            ], {
-              duration: 100,
-              iterations: 32,
-              direction: 'alternate',
-              easing: 'steps(2)',
-            });
+            return;
           }
-        });
-      }, 200);
+          this['playerCurrentD' + i] = null;
+          tank.updateStyle({
+            backgroundPositionX: 0,
+          });
+          eventBus.emit(eventBus.PLAY_REBONE, i);
+          let shield = this.ref['shield' + i];
+          item[3] = 1;
+          let tx = item[5] = item[0] * 16;
+          let ty = item[6] = item[1] * 16;
+          player.updateStyle({
+            translateX: tx,
+            translateY: ty,
+          });
+          player.clearAnimate();
+          let fadeIn = player.animate([
+            {
+              opacity: 0.85,
+            },
+            {
+              opacity: 0.7,
+            },
+          ], {
+            duration: 100,
+            iterations: 32,
+            direction: 'alternate',
+            easing: 'steps(2)',
+          });
+          fadeIn.on('finish', () => {
+            player.removeAnimate(fadeIn);
+            item[3] = 0;
+          });
+          shield.clearAnimate();
+          shield.animate([
+            {
+              backgroundPosition: '-442 -238',
+            },
+            {
+              backgroundPosition: '-510 -238',
+            },
+          ], {
+            duration: 100,
+            iterations: 32,
+            direction: 'alternate',
+            easing: 'steps(2)',
+          });
+        }
+      });
     });
     eventBus.on(eventBus.HIT_US_BY_US, (id, x, y, us) => {
       us.forEach(item => {
@@ -247,13 +251,13 @@ class Player extends karas.Component {
     karas.animate.frame.offFrame(cb);
     // 检查是否被挡住
     let item = this.state.list[index];
-    // 坦克坐标移动，没2帧移动1次2px，便于控制
-    let frameDrop = 0;
+    // 坦克坐标移动，每2帧移动1次2px，便于控制
+    let frameJump = 0;
     cb = this['ma' + index] = function() {
-      if(frameDrop++ < 1) {
+      if(frameJump++ < 1) {
         return;
       }
-      frameDrop = 0;
+      frameJump = 0;
       if(util.checkBox(item[5], item[6], direction, data.current.box)) {
         return;
       }
@@ -312,7 +316,7 @@ class Player extends karas.Component {
     let x = item[5];
     let y = item[6];
     if(currentD === 0) {
-      player.updateStyle({
+      tank.updateStyle({
         backgroundPositionX: 0,
       });
       if(y % 4 !== 0) {
@@ -323,7 +327,7 @@ class Player extends karas.Component {
       }
     }
     else if(currentD === 1) {
-      player.updateStyle({
+      tank.updateStyle({
         backgroundPositionX: -68,
       });
       if(x % 4 !== 0) {
@@ -334,7 +338,7 @@ class Player extends karas.Component {
       }
     }
     else if(currentD === 2) {
-      player.updateStyle({
+      tank.updateStyle({
         backgroundPositionX: -136,
       });
       if(y % 4 !== 0) {
@@ -345,7 +349,7 @@ class Player extends karas.Component {
       }
     }
     else if(currentD === 3) {
-      player.updateStyle({
+      tank.updateStyle({
         backgroundPositionX: -204,
       });
       if(x % 4 !== 0) {

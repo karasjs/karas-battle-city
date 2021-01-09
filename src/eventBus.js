@@ -28,4 +28,6 @@ eventBus.ENEMY_FIRE = 'ENEMY_FIRE';
 
 eventBus.PLAY_REBONE = 'PLAY_REBONE';
 
+eventBus.BOOM = 'BOOM';
+
 export default eventBus;
