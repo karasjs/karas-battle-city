@@ -1542,7 +1542,7 @@
     1: 2,
     2: 1
   };
-  var ENEMY_FIRE_COUNT = 1000;
+  var ENEMY_FIRE_COUNT = 100;
 
   function getBgP(type, direction) {
     var p = '-136 -68';
@@ -1640,6 +1640,7 @@
                 var movePx = MOVE_PX$1[type] || 1; // 积累一定随机时间后开火
 
                 var fire = --item[8];
+                console.log(fire);
 
                 if (fire === 0) {
                   item[8] = ENEMY_FIRE_COUNT + Math.floor(Math.random() * ENEMY_FIRE_COUNT);

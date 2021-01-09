@@ -13,7 +13,7 @@ const MOVE_PX = {
   1: 2,
   2: 1,
 };
-const ENEMY_FIRE_COUNT = 1000;
+const ENEMY_FIRE_COUNT = 100;
 
 function getBgP(type, direction) {
   let p = '-136 -68';
@@ -89,7 +89,7 @@ class Enemy extends karas.Component {
             let tank = this.ref['tank' + i];
             let movePx = MOVE_PX[type] || 1;
             // 积累一定随机时间后开火
-            let fire = --item[8];
+            let fire = --item[8];console.log(fire);
             if(fire === 0) {
               item[8] = ENEMY_FIRE_COUNT + Math.floor(Math.random() * ENEMY_FIRE_COUNT);
               eventBus.emit(eventBus.ENEMY_FIRE, i, [px, py], direction);
