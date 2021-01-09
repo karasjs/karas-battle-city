@@ -27,10 +27,52 @@
       background:#000;
       transform:translateX(-50%);
     }
+
+    #control{
+      position:relative;
+      margin:10px auto 0;
+      width:320px;
+      height:205px;
+      background:url(control.png);
+      background-size:contain;
+    }
+    #control span{
+      position:absolute;
+      width:40px;
+      height:40px;
+      background:rgba(255,0,0,0.1);
+    }
+    #w{
+      left:88px;
+      top:0;
+    }
+    #a{
+      left:2px;
+      top:78px;
+    }
+    #s{
+      left:88px;
+      bottom:0;
+    }
+    #d{
+      left:173px;
+      top:78px;
+    }
+    #j{
+      left:267px;
+      top:78px;
+    }
   </style>
 </head>
 <body>
 <div id="canvas"></div>
+<div id="control">
+  <span id="w"></span>
+  <span id="a"></span>
+  <span id="s"></span>
+  <span id="d"></span>
+  <span id="j"></span>
+</div>
 <script src="../karas/index.js"></script>
 <script src="index.js"></script>
 </body>

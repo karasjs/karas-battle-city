@@ -36,7 +36,7 @@ document.addEventListener('keydown', function(e) {
   // console.warn(e.keyCode, eventBus.gameState);
   // 菜单进入，快速进入完毕
   if(eventBus.gameState === eventBus.BEFORE_MENU) {
-    if(e.keyCode === 74 || e.keyCode === 13) {
+    if(e.keyCode === 74) {
       root.ref.menu.fastShow();
     }
   }
@@ -46,7 +46,7 @@ document.addEventListener('keydown', function(e) {
       root.ref.menu.altPlayerNum();
     }
     // 开始游戏，赋予data的current为第1局数值
-    else if(e.keyCode === 74 || e.keyCode === 13) {
+    else if(e.keyCode === 74) {
       eventBus.gameState = eventBus.BEFORE_GAME;
       root.ref.stageNum.show(1);
       data.current = karas.util.clone(data[0]);
@@ -121,5 +121,110 @@ document.addEventListener('keyup', function(e) {
     else if(keyCode === 65) {
       root.ref.player.stop(0);
     }
+  }
+});
+
+let w = document.querySelector('#w');
+let a = document.querySelector('#a');
+let s = document.querySelector('#s');
+let d = document.querySelector('#d');
+let j = document.querySelector('#j');
+
+w.addEventListener('touchstart', function() {
+  if(eventBus.gameState === eventBus.MENUING) {
+    root.ref.menu.altPlayerNum();
+  }
+  else if(eventBus.gameState === eventBus.GAMEING) {
+    root.ref.player.move(0, 0);
+  }
+});
+
+a.addEventListener('touchstart', function() {
+  if(eventBus.gameState === eventBus.GAMEING) {
+    root.ref.player.move(0, 3);
+  }
+});
+
+s.addEventListener('touchstart', function() {
+  if(eventBus.gameState === eventBus.MENUING) {
+    root.ref.menu.altPlayerNum();
+  }
+  else if(eventBus.gameState === eventBus.GAMEING) {
+    root.ref.player.move(0, 2);
+  }
+});
+
+d.addEventListener('touchstart', function() {
+  if(eventBus.gameState === eventBus.GAMEING) {
+    root.ref.player.move(0, 1);
+  }
+});
+
+j.addEventListener('touchstart', function() {
+  if(eventBus.gameState === eventBus.BEFORE_MENU) {
+    root.ref.menu.fastShow();
+  }
+  else if(eventBus.gameState === eventBus.MENUING) {
+    eventBus.gameState = eventBus.BEFORE_GAME;
+    root.ref.stageNum.show(1);
+    data.current = karas.util.clone(data[0]);
+  }
+  else if(eventBus.gameState === eventBus.GAMEING) {
+    let position = root.ref.player.getPosition(0);
+    let direction = root.ref.player.getDirection(0);
+    root.ref.bullet.move(0, position.slice(0), direction);
+  }
+  else if(eventBus.gameState === eventBus.GAME_OVER_WAIT) {
+    root.ref.player.setState({
+      show: false,
+      list: [],
+    });
+    root.ref.enemy.setState({
+      show: false,
+      list: [],
+    });
+    root.ref.brick.setState({
+      show: false,
+      list: [],
+    });
+    root.ref.iron.setState({
+      show: false,
+      list: [],
+    });
+    root.ref.box.setState({
+      show: false,
+      list: [],
+      home: [],
+    });
+    root.ref.gameOver.setState({
+      show: false,
+    });
+    root.ref.menu.show();
+    eventBus.gameState = eventBus.BEFORE_MENU;
+    eventBus.emit(eventBus.BEFORE_MENU);
+  }
+});
+
+w.addEventListener('touchend', function() {
+  if(eventBus.gameState === eventBus.GAMEING) {
+    root.ref.player.stop(0);
+  }
+});
+
+a.addEventListener('touchend', function() {
+  if(eventBus.gameState === eventBus.GAMEING) {
+    root.ref.player.stop(0);
+  }
+});
+
+s.addEventListener('touchend', function() {
+  if(eventBus.gameState === eventBus.GAMEING) {
+    root.ref.player.stop(0);
+  }
+});
+
+d.addEventListener('touchend', function() {
+  if(eventBus.gameState === eventBus.GAMEING) {
+    root.ref.player.stop(0);
   }
 });
