@@ -1267,12 +1267,16 @@
         var _this2 = this;
 
         // 开始游戏
-        eventBus.on(eventBus.GAMEING, function () {
+        eventBus.on(eventBus.WILL_GAME, function () {
           var list = data.current.player;
 
           _this2.setState({
-            show: true,
             list: list
+          });
+        });
+        eventBus.on(eventBus.GAMEING, function () {
+          _this2.setState({
+            show: true
           }, function () {
             _this2.state.list.forEach(function (item, i) {
               var player = _this2.ref['player' + i];
@@ -2196,6 +2200,20 @@
                 eventBus.emit(eventBus.BOOM, item[5] + 16, item[6] + 16);
               }
             });
+            var n = 0;
+            data.current.enemy.forEach(function (item) {
+              if (item[3] !== 2) {
+                n++;
+              }
+            });
+
+            if (!n) {
+              setTimeout(function () {
+                data.num++;
+                data.num %= data.total;
+                eventBus.emit(eventBus.GAME_NEXT);
+              }, 2000);
+            }
           }
         });
         eventBus.on([eventBus.BEFORE_MENU, eventBus.WILL_GAME], function () {

@@ -414,6 +414,19 @@ class Enemy extends karas.Component {
             eventBus.emit(eventBus.BOOM, item[5] + 16, item[6] + 16);
           }
         });
+        let n = 0;
+        data.current.enemy.forEach(item => {
+          if(item[3] !== 2) {
+            n++;
+          }
+        });
+        if(!n) {
+          setTimeout(() => {
+            data.num++;
+            data.num %= data.total;
+            eventBus.emit(eventBus.GAME_NEXT);
+          }, 2000);
+        }
       }
     })
     eventBus.on([eventBus.BEFORE_MENU, eventBus.WILL_GAME], () => {

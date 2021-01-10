@@ -17,11 +17,15 @@ class Player extends karas.Component {
 
   componentDidMount() {
     // 开始游戏
-    eventBus.on(eventBus.GAMEING, () => {
+    eventBus.on(eventBus.WILL_GAME, () => {
       let list = data.current.player;
       this.setState({
-        show: true,
         list,
+      });
+    });
+    eventBus.on(eventBus.GAMEING, () => {
+      this.setState({
+        show: true,
       }, () => {
         this.state.list.forEach((item, i) => {
           let player = this.ref['player' + i];
