@@ -31,6 +31,8 @@ eventBus.SHOOT = 'SHOOT';
 
 eventBus.PLAY_REBONE = 'PLAY_REBONE';
 eventBus.PLAYER_NO_LIFE = 'PLAYER_NO_LIFE';
+eventBus.MOVE = 'MOVE';
+eventBus.STOP = 'STOP';
 
 eventBus.BOOM = 'BOOM';
 

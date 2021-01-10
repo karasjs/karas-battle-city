@@ -19,7 +19,7 @@ const MOVE_PX = {
   4: 1,
   5: 1,
 };
-const ENEMY_FIRE_COUNT = 5;
+const ENEMY_FIRE_COUNT = 50;
 
 function getBgP(type, direction, red, life) {
   let p = '-136 -68';
@@ -426,7 +426,7 @@ class Enemy extends karas.Component {
             direction = list[i];
           }
           // 新出生的tank
-          if(state === 0) {
+          if(!state) {
             item[3] = 1; // 变老tank
             item[4] = direction;
             item[5] = px = tx * 16;

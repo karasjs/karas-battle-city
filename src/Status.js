@@ -66,7 +66,7 @@ class Status extends karas.Component {
       <div ref="list">
         {
           this.state.list.map(item => {
-            if(item[3] !== 0) {
+            if(item[3]) {
               return null;
             }
             return <span style={{

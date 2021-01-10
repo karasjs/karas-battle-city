@@ -255,6 +255,7 @@ class Player extends karas.Component {
     else {
       return;
     }
+    eventBus.emit(eventBus.MOVE);
     this['playerLastD' + index] = direction;
     let cb = this['ma' + index];
     karas.animate.frame.offFrame(cb);
@@ -373,6 +374,7 @@ class Player extends karas.Component {
   }
 
   stop(index) {
+    eventBus.emit(eventBus.STOP);
     let player = this.ref['player' + index];
     let tank = this.ref['tank' + index];
     let item = this.state.list[index];

@@ -19,6 +19,20 @@ class AudioController {
       preload: true,
       volume: 0.5,
     });
+    this.move = new Howl({
+      src: 'sound/move.mp3',
+      format: 'mp3',
+      loop: true,
+      preload: true,
+      volume: 0.5,
+    });
+    this.move2 = new Howl({
+      src: 'sound/move.mp3',
+      format: 'mp3',
+      loop: true,
+      preload: true,
+      volume: 0.5,
+    });
     this.hitBrick = new Howl({
       src: 'sound/hit_brick.mp3',
       format: 'mp3',
@@ -95,6 +109,18 @@ class AudioController {
       loop: false,
       preload: true,
       volume: 0.5,
+    });
+    eventBus.on(eventBus.MOVE, () => {
+      this.move.play();
+      setTimeout(() => {
+        this.move2.play();
+      }, 300);
+    });
+    eventBus.on(eventBus.STOP, () => {
+      this.move.stop();
+      setTimeout(() => {
+        this.move2.stop();
+      }, 300);
     });
     eventBus.on(eventBus.OCCUR, () => {
       this.occur.play();

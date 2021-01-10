@@ -32,6 +32,9 @@
 #map .iron{
   background-position: 0 -204px;
 }
+#map .grass{
+  background-position: -136px -238px;
+}
 #map .home{
   width: 32px;
   height: 32px;
@@ -61,6 +64,7 @@
 <ul id="items">
   <li id="brick">砖头</li>
   <li id="iron">铁墙</li>
+  <li id="grass">草地</li>
   <li id="home">老家</li>
   <li id="enemy">敌军</li>
   <li id="player">玩家</li>
@@ -76,6 +80,7 @@ let map = document.querySelector('#map');
 let items = document.querySelector('#items');
 let brick = document.querySelector('#brick');
 let iron = document.querySelector('#iron');
+let grass = document.querySelector('#grass');
 let home = document.querySelector('#home');
 let enemy = document.querySelector('#enemy');
 let player = document.querySelector('#player');
@@ -102,6 +107,9 @@ brick.addEventListener('click', function() {
 iron.addEventListener('click', function() {
   setType('iron', this);
 });
+grass.addEventListener('click', function() {
+  setType('grass', this);
+});
 home.addEventListener('click', function() {
   setType('home', this);
 });
@@ -115,6 +123,7 @@ player.addEventListener('click', function() {
 let hash = {
   brick: {},
   iron: {},
+  grass: {},
   home: {},
   enemy: {},
   player: {},
@@ -137,6 +146,11 @@ map.addEventListener('click', function(e) {
     node = hash.iron[k];
     node.parentNode.removeChild(node);
     delete hash.iron[k];
+  }
+  else if(hash.grass.hasOwnProperty(k)) {
+    node = hash.grass[k];
+    node.parentNode.removeChild(node);
+    delete hash.grass[k];
   }
   else if(hash.home.hasOwnProperty(k)) {
     node = hash.home[k];
@@ -168,7 +182,9 @@ button.addEventListener('click', function() {
     brick: [],
     iron: [],
     home: [],
+    grass: [],
     enemy: [],
+    player: [],
   };
   let minX = 100, minY = 100, maxX = 0, maxY = 0;
   Object.keys(hash.brick).forEach(k => {
@@ -186,6 +202,16 @@ button.addEventListener('click', function() {
     x = parseInt(x);
     y = parseInt(y);
     res.iron.push([x, y]);
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+  });
+  Object.keys(hash.grass).forEach(k => {
+    let [x, y] = k.split(',');
+    x = parseInt(x);
+    y = parseInt(y);
+    res.grass.push([x, y]);
     minX = Math.min(minX, x);
     minY = Math.min(minY, y);
     maxX = Math.max(maxX, x);
@@ -253,6 +279,16 @@ parse.addEventListener('click', function() {
     map.appendChild(node);
     hash.iron[k] = node;
   });
+  (json.grass || []).forEach(item => {
+    let [x, y] = item;
+    let k = x + ',' + y;
+    let node = document.createElement('span');
+    node.className = 'grass';
+    node.style.left = x * 16 + 'px';
+    node.style.top = y * 16 + 'px';
+    map.appendChild(node);
+    hash.grass[k] = node;
+  });
   (json.home || []).forEach(item => {
     let [x, y] = item;
     let k = x + ',' + y;
@@ -317,6 +353,16 @@ function move(direction) {
     n[k] = node;
   });
   hash.iron = n;
+  n = {};
+  Object.keys(hash.grass).forEach(k => {
+    let node = hash.grass[k];
+    let [x, y] = k.split(',');
+    y--;
+    node.style.top = y * 16 + 'px';
+    k = x + ',' + y;
+    n[k] = node;
+  });
+  hash.grass = n;
   n = {};
   Object.keys(hash.home).forEach(k => {
     let node = hash.home[k];
