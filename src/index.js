@@ -10,10 +10,12 @@ import Enemy from './Enemy';
 import Bullet from './Bullet';
 import Hit from './Hit';
 import Boom from './Boom';
+import Item from './Item';
 import eventBus from './eventBus';
 import data from './data';
 import sound from './Sound';
-sound.mute();
+// sound.mute();
+
 let root = karas.render(
   <canvas width={600} height={600} cache="1">
     <Box ref="box" />
@@ -22,6 +24,7 @@ let root = karas.render(
     <Player ref="player" />
     <Enemy ref="enemy" />
     <Fade ref="fade" />
+    <Item ref="item"/>
     <Bullet ref="bullet" />
     <Boom ref="boom" />
     <Hit ref="hit" />

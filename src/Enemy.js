@@ -233,7 +233,10 @@ class Enemy extends karas.Component {
         }
         frameJump = 0;
         this.state.list.forEach((item, i) => {
-          // console.log(item);
+          // 暂停道具
+          if(data.current.enemyPause) {
+            return;
+          }
           let [x, y, type, state, direction, px, py] = item;
           let red = item[9];
           let life = item[10];

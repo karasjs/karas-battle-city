@@ -12,7 +12,7 @@ class Boom extends karas.Component {
   componentDidMount() {
     eventBus.on(eventBus.BOOM, (x, y) => {
       let hash = this.state.hash;
-      let id = x + ',' + y;console.log(x,y)
+      let id = x + ',' + y;
       hash[id] = {
         x,
         y,

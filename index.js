@@ -183,6 +183,7 @@
   eventBus.GAMEING = 4;
   eventBus.GAME_OVER = 5;
   eventBus.GAME_OVER_WAIT = 6;
+  eventBus.GAME_NEXT = 7;
   eventBus.gameState = eventBus.BEFORE_MENU;
   eventBus.activeEnemyNum = 0;
   eventBus.playerNum = 1;
@@ -579,6 +580,8 @@
             fail: true
           });
         });
+        eventBus.on(eventBus.GET, function (type) {
+        });
       }
     }, {
       key: "render",
@@ -820,7 +823,7 @@
           }
 
           var count = 0;
-          var interval = setInterval(function () {
+          var interval = _this2.interval = setInterval(function () {
             if (eventBus.gameState !== eventBus.GAMEING) {
               clearInterval(interval);
               return;
@@ -846,6 +849,9 @@
         });
         eventBus.on(eventBus.PLAY_REBONE, function (i) {
           _this2.show('player', i);
+        });
+        eventBus.on([eventBus.GAME_OVER, eventBus.GAME_NEXT], function () {
+          clearInterval(_this2.interval);
         });
       }
     }, {
@@ -1094,12 +1100,45 @@
     }
   }
 
+  function checkItem(tx1, ty1, direction) {
+    var list = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : [];
+    var tx2 = tx1 + 32;
+    var ty2 = ty1 + 32;
+
+    for (var i = 0, len = list.length; i < len; i++) {
+      var item = list[i];
+      var x1 = item[1];
+      var y1 = item[2];
+      var x2 = x1 + 32;
+      var y2 = y1 + 32;
+
+      if (direction === 0) {
+        if (x1 < tx2 && x2 > tx1 && ty1 <= y2 && ty1 >= y1) {
+          return item;
+        }
+      } else if (direction === 1) {
+        if (y1 < ty2 && y2 > ty1 && tx2 >= x1 && tx2 <= x2) {
+          return item;
+        }
+      } else if (direction === 2) {
+        if (x1 < tx2 && x2 > tx1 && ty2 >= y1 && ty2 <= y2) {
+          return item;
+        }
+      } else if (direction === 3) {
+        if (y1 < ty2 && y2 > ty1 && tx1 <= x2 && tx1 >= x1) {
+          return item;
+        }
+      }
+    }
+  }
+
   var util = {
     checkBox: checkBox,
     checkMove: checkMove,
     checkEnemy: checkEnemy,
     checkUs: checkUs,
-    checkHome: checkHome
+    checkHome: checkHome,
+    checkItem: checkItem
   };
 
   var MOVE_PX = 2;
@@ -1182,14 +1221,14 @@
 
             if (i !== undefined) {
               var _item = _this2.state.list[i];
-              eventBus.emit(eventBus.BOOM, _item[5] + 16, _item[6] + 16);
               var player = _this2.ref['player' + i];
-              var tank = _this2.ref['tank' + i];
+              var tank = _this2.ref['tank' + i]; // 保护状态
 
               if (_item[3] === 1) {
                 return;
               }
 
+              eventBus.emit(eventBus.BOOM, _item[5] + 16, _item[6] + 16);
               var life = _item[2]--;
 
               if (life < 0) {
@@ -1301,6 +1340,8 @@
     }, {
       key: "move",
       value: function move(index, direction) {
+        var _this3 = this;
+
         var player = this.ref['player' + index];
         var tank = this.ref['tank' + index];
 
@@ -1391,6 +1432,66 @@
             return;
           }
 
+          var items = util.checkItem(item[5], item[6], direction, data.current.item);
+
+          if (items) {
+            switch (items[0]) {
+              case 'life':
+                _this3.state.list[index][2]++;
+                eventBus.emit(eventBus.LIFE, items[0]);
+                break;
+
+              case 'pause':
+                eventBus.emit(eventBus.GET, items[0]);
+                break;
+
+              case 'protect':
+                _this3.state.list[index][3] = 1;
+                var _player = _this3.ref['player' + index];
+                var shield = _this3.ref['shield' + index];
+
+                _player.clearAnimate();
+
+                var fadeIn = _player.animate([{
+                  opacity: 0.85
+                }, {
+                  opacity: 0.7
+                }], {
+                  duration: 100,
+                  iterations: PROTECT_COUNT * 4,
+                  direction: 'alternate',
+                  easing: 'steps(2)'
+                });
+
+                fadeIn.on('finish', function () {
+                  _player.removeAnimate(fadeIn);
+
+                  item[3] = 0;
+                });
+                shield.clearAnimate();
+                shield.animate([{
+                  backgroundPosition: '-442 -238'
+                }, {
+                  backgroundPosition: '-510 -238'
+                }], {
+                  duration: 100,
+                  iterations: PROTECT_COUNT * 4,
+                  direction: 'alternate',
+                  easing: 'steps(2)'
+                });
+                eventBus.emit(eventBus.GET, items[0]);
+                break;
+
+              case 'boom':
+                eventBus.emit(eventBus.GET, items[0]);
+                break;
+
+              case 'wall':
+                eventBus.emit(eventBus.GET, items[0]);
+                break;
+            }
+          }
+
           if (direction === 0) {
             item[6] -= MOVE_PX;
             player.updateStyle({
@@ -1415,6 +1516,9 @@
         };
 
         karas$1.animate.frame.onFrame(cb);
+        eventBus.on([eventBus.GAME_OVER, eventBus.GAME_NEXT], function () {
+          karas$1.animate.frame.offFrame(cb);
+        });
       }
     }, {
       key: "stop",
@@ -1781,7 +1885,11 @@
             frameJump = 0;
 
             _this2.state.list.forEach(function (item, i) {
-              // console.log(item);
+              // 暂停道具
+              if (data.current.enemyPause) {
+                return;
+              }
+
               var _item = _slicedToArray(item, 7),
                   x = _item[0],
                   y = _item[1],
@@ -2126,8 +2234,6 @@
           res.push([x0, y0]);
         }
       } else if (direction === 2) {
-        if (window.ttt) console.log(x, y, x1, y1, x2, y2, y + 36 >= y1, y + 28 <= y2, x + 20 >= x1, x + 12 <= x2);
-
         if (y + 36 >= y1 && y + 28 <= y2 && x + 20 >= x1 && x + 12 <= x2) {
           res.push([x0, y0]);
         }
@@ -2692,7 +2798,6 @@
         eventBus.on(eventBus.BOOM, function (x, y) {
           var hash = _this2.state.hash;
           var id = x + ',' + y;
-          console.log(x, y);
           hash[id] = {
             x: x,
             y: y
@@ -2784,6 +2889,163 @@
     }]);
 
     return Boom;
+  }(karas$1.Component);
+
+  var TYPE = {
+    pause: {
+      px: 476,
+      py: 204
+    },
+    protect: {
+      px: 612,
+      py: 204
+    },
+    boom: {
+      px: 680,
+      py: 204
+    },
+    wall: {
+      px: 748,
+      py: 204
+    },
+    life: {
+      px: 816,
+      py: 204
+    }
+  };
+
+  var Item = /*#__PURE__*/function (_karas$Component) {
+    _inherits(Item, _karas$Component);
+
+    var _super = _createSuper(Item);
+
+    function Item(props) {
+      var _this;
+
+      _classCallCheck(this, Item);
+
+      _this = _super.call(this, props);
+      _this.state = {
+        hash: {}
+      };
+      return _this;
+    }
+
+    _createClass(Item, [{
+      key: "componentDidMount",
+      value: function componentDidMount() {
+        var _this2 = this;
+
+        var list = ['pause', 'protect', 'boom', 'wall', 'life'];
+        eventBus.on(eventBus.OCCUR, function () {
+          var i = Math.floor(Math.random() * list.length);
+          var x = Math.floor(Math.random() * (data.current.box[2] - data.current.box[0]) * 8) + data.current.box[2] * 8;
+          var y = Math.floor(Math.random() * (data.current.box[3] - data.current.box[1]) * 8) + data.current.box[1] * 8;
+          var hash = _this2.state.hash;
+          var type = list[i];
+          type = 'protect';
+          var o = hash[type] = {
+            x: x,
+            y: y
+          };
+          data.current.item = Object.keys(hash).map(function (k) {
+            return [k, hash[k].x, hash[k].y];
+          });
+
+          _this2.setState({
+            hash: hash
+          }, function () {
+            var node = _this2.ref[type];
+            var a = node.animate([{}, {
+              visibility: 'hidden'
+            }], {
+              duration: 200,
+              iterations: 1196,
+              direction: 'alternate'
+            });
+            a.on('finish', function () {
+              if (hash[type] === o) {
+                delete hash[type];
+                data.current.item = Object.keys(hash).map(function (k) {
+                  return [k, hash[k].x, hash[k].y];
+                });
+
+                _this2.setState({
+                  hash: hash
+                });
+              }
+            });
+          });
+        });
+        eventBus.on([eventBus.LIFE, eventBus.GET], function (type) {
+          var hash = _this2.state.hash;
+          delete hash[type];
+          data.current.item = Object.keys(hash).map(function (k) {
+            return [k, hash[k].x, hash[k].y];
+          });
+
+          _this2.setState({
+            hash: hash
+          });
+
+          var count = 0;
+          karas$1.animate.frame.offFrame(_this2.cb);
+
+          if (type === 'pause') {
+            data.current.enemyPause = true;
+
+            var cb = _this2.cb = function (diff) {
+              count += diff;
+
+              if (count > 5000) {
+                data.current.enemyPause = false;
+              }
+            };
+
+            karas$1.animate.frame.onFrame(cb);
+          }
+        });
+        eventBus.on([eventBus.GAME_OVER, eventBus.GAME_NEXT], function () {
+          karas$1.animate.frame.offFrame(_this2.cb);
+        });
+      }
+    }, {
+      key: "render",
+      value: function render() {
+        var _this3 = this;
+
+        return karas$1.createElement("div", {
+          style: {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: '100%',
+            height: '100%'
+          }
+        }, Object.keys(this.state.hash).map(function (type) {
+          var data = _this3.state.hash[type];
+          var x = data.x,
+              y = data.y;
+          var _TYPE$type = TYPE[type],
+              px = _TYPE$type.px,
+              py = _TYPE$type.py;
+          return karas$1.createElement("span", {
+            ref: type,
+            key: type,
+            style: {
+              position: 'absolute',
+              left: x,
+              top: y,
+              width: 32,
+              height: 32,
+              background: "url(tank.png) no-repeat ".concat(-px, " ").concat(-py)
+            }
+          });
+        }));
+      }
+    }]);
+
+    return Item;
   }(karas$1.Component);
 
   var AudioController = /*#__PURE__*/function () {
@@ -2934,19 +3196,18 @@
         });
         eventBus.on(eventBus.HIT_IRON, function () {
           _this.hitIron.play();
-        }); // eventBus.on(eventBus.HIT_ENEMY, (id, x, y, enemy) => {
-        //   if (!enemy[id][10] && !enemy[id][0]) {
-        //     this.hitTank.play();
-        //   } else {
-        //     this.hitIron.play();
-        //   }
-        // });
-
+        });
         eventBus.on(eventBus.BOOM, function () {
           _this.boom.play();
         });
         eventBus.on(eventBus.HIT_HOME, function () {
           _this.hitHome.play();
+        });
+        eventBus.on(eventBus.GET, function () {
+          _this.get.play();
+        });
+        eventBus.on(eventBus.LIFE, function () {
+          _this.life.play();
         });
       }
     }, {
@@ -2962,9 +3223,8 @@
     return AudioController;
   }();
 
-  var sound = new AudioController();
+  new AudioController();
 
-  sound.mute();
   var root = karas.render(karas.createElement("canvas", {
     width: 600,
     height: 600,
@@ -2981,6 +3241,8 @@
     ref: "enemy"
   }), karas.createElement(Fade, {
     ref: "fade"
+  }), karas.createElement(Item, {
+    ref: "item"
   }), karas.createElement(Bullet, {
     ref: "bullet"
   }), karas.createElement(Boom, {

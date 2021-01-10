@@ -10,6 +10,7 @@ eventBus.WILL_GAME = 3;
 eventBus.GAMEING = 4;
 eventBus.GAME_OVER = 5;
 eventBus.GAME_OVER_WAIT = 6;
+eventBus.GAME_NEXT = 7;
 
 eventBus.gameState = eventBus.BEFORE_MENU;
 eventBus.activeEnemyNum = 0;

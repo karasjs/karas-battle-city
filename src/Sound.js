@@ -135,18 +135,17 @@ class AudioController {
     eventBus.on(eventBus.HIT_IRON, () => {
       this.hitIron.play();
     });
-    // eventBus.on(eventBus.HIT_ENEMY, (id, x, y, enemy) => {
-    //   if (!enemy[id][10] && !enemy[id][0]) {
-    //     this.hitTank.play();
-    //   } else {
-    //     this.hitIron.play();
-    //   }
-    // });
     eventBus.on(eventBus.BOOM, () => {
       this.boom.play();
     });
     eventBus.on(eventBus.HIT_HOME, () => {
       this.hitHome.play();
+    });
+    eventBus.on(eventBus.GET, () => {
+      this.get.play();
+    });
+    eventBus.on(eventBus.LIFE, () => {
+      this.life.play();
     });
   }
   play () {

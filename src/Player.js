@@ -73,12 +73,13 @@ class Player extends karas.Component {
         }
         if(i !== undefined) {
           let item = this.state.list[i];
-          eventBus.emit(eventBus.BOOM, item[5] + 16, item[6] + 16);
           let player = this.ref['player' + i];
           let tank = this.ref['tank' + i];
+          // 保护状态
           if(item[3] === 1) {
             return;
           }
+          eventBus.emit(eventBus.BOOM, item[5] + 16, item[6] + 16);
           let life = item[2]--;
           if(life < 0) {
             player.updateStyle({
@@ -253,7 +254,7 @@ class Player extends karas.Component {
     let item = this.state.list[index];
     // 坦克坐标移动，每2帧移动1次2px，便于控制
     let frameJump = 0;
-    cb = this['ma' + index] = function() {
+    cb = this['ma' + index] = () => {
       if(frameJump++ < 1) {
         return;
       }
@@ -275,6 +276,62 @@ class Player extends karas.Component {
       }
       if(util.checkHome(item[5], item[6], direction, data.current.home)) {
         return;
+      }
+      let items = util.checkItem(item[5], item[6], direction, data.current.item);
+      if(items) {
+        switch(items[0]) {
+          case 'life':
+            this.state.list[index][2]++;
+            eventBus.emit(eventBus.LIFE, items[0]);
+            break;
+          case 'pause':
+            eventBus.emit(eventBus.GET, items[0]);
+            break;
+          case 'protect':
+            this.state.list[index][3] = 1;
+            let player = this.ref['player' + index];
+            let shield = this.ref['shield' + index];
+            player.clearAnimate();
+            let fadeIn = player.animate([
+              {
+                opacity: 0.85,
+              },
+              {
+                opacity: 0.7,
+              },
+            ], {
+              duration: 100,
+              iterations: PROTECT_COUNT * 4,
+              direction: 'alternate',
+              easing: 'steps(2)',
+            });
+            fadeIn.on('finish', () => {
+              player.removeAnimate(fadeIn);
+              item[3] = 0;
+            });
+            shield.clearAnimate();
+            shield.animate([
+              {
+                backgroundPosition: '-442 -238',
+              },
+              {
+                backgroundPosition: '-510 -238',
+              },
+            ], {
+              duration: 100,
+              iterations: PROTECT_COUNT * 4,
+              direction: 'alternate',
+              easing: 'steps(2)',
+            });
+            eventBus.emit(eventBus.GET, items[0]);
+            break;
+          case 'boom':
+            eventBus.emit(eventBus.GET, items[0]);
+            break;
+          case 'wall':
+            eventBus.emit(eventBus.GET, items[0]);
+            break;
+        }
       }
       if(direction === 0) {
         item[6] -= MOVE_PX;
@@ -302,6 +359,9 @@ class Player extends karas.Component {
       }
     };
     karas.animate.frame.onFrame(cb);
+    eventBus.on([eventBus.GAME_OVER, eventBus.GAME_NEXT], () => {
+      karas.animate.frame.offFrame(cb);
+    });
   }
 
   stop(index) {

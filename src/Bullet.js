@@ -57,7 +57,7 @@ function checkHit(position, direction, dx, dy, list, double) {
         res.push([x0, y0]);
       }
     }
-    else if(direction === 2) {if(window.ttt)console.log(x,y,x1,y1,x2,y2,y + 36 >= y1 , y + 28 <= y2 , x + 20 >= x1 , x + 12 <= x2)
+    else if(direction === 2) {
       if(y + 36 >= y1 && y + 28 <= y2 && x + 20 >= x1 && x + 12 <= x2) {
         res.push([x0, y0]);
       }
