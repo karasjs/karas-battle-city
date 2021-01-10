@@ -195,9 +195,11 @@
   eventBus.HIT_US = 'HIT_US';
   eventBus.HIT_US_BY_US = 'HIT_US_BY_US';
   eventBus.ADD_ENEMY = 'ADD_ENEMY';
+  eventBus.ADDED_ENEMY = 'ADDED_ENEMY';
   eventBus.ENEMY_FIRE = 'ENEMY_FIRE';
   eventBus.SHOOT = 'SHOOT';
   eventBus.PLAY_REBONE = 'PLAY_REBONE';
+  eventBus.PLAYER_NO_LIFE = 'PLAYER_NO_LIFE';
   eventBus.BOOM = 'BOOM';
   eventBus.OCCUR = 'OCCUR';
   eventBus.GET = 'GET';
@@ -485,7 +487,7 @@
       value: function componentDidMount() {
         var _this2 = this;
 
-        eventBus.on(eventBus.HIT_HOME, function () {
+        eventBus.on([eventBus.HIT_HOME, eventBus.PLAYER_NO_LIFE], function () {
           eventBus.gameState = eventBus.GAME_OVER;
           eventBus.emit(eventBus.GAME_OVER);
 
@@ -911,7 +913,7 @@
             if (count >= data.current.enemy.length) {
               clearInterval(interval);
             }
-          }, 4000);
+          }, 1000);
         });
         eventBus.on(eventBus.PLAY_REBONE, function (i) {
           _this2.show('player', i);
@@ -1297,7 +1299,7 @@
               eventBus.emit(eventBus.BOOM, _item[5] + 16, _item[6] + 16);
               var life = _item[2]--;
 
-              if (life < 0) {
+              if (life <= 0) {
                 player.updateStyle({
                   visibility: 'hidden'
                 });
@@ -1345,6 +1347,15 @@
               });
             }
           });
+          var n = 0;
+          data.current.player.forEach(function (item) {
+            n += item[2];
+          });
+
+          if (n < 0) {
+            eventBus.gameState = eventBus.GAME_OVER;
+            eventBus.emit(eventBus.PLAYER_NO_LIFE);
+          }
         });
         eventBus.on(eventBus.HIT_US_BY_US, function (id, x, y, us) {
           us.forEach(function (item) {
@@ -1729,7 +1740,7 @@
     4: 1,
     5: 1
   };
-  var ENEMY_FIRE_COUNT = 50;
+  var ENEMY_FIRE_COUNT = 5;
 
   function getBgP(type, direction, red, life) {
     var p = '-136 -68';
@@ -1964,7 +1975,7 @@
 
                 var fire = --item[8];
 
-                if (fire === 0) {
+                if (fire <= 0) {
                   item[8] = ENEMY_FIRE_COUNT + Math.floor(Math.random() * ENEMY_FIRE_COUNT);
                   eventBus.emit(eventBus.ENEMY_FIRE, i, [px, py], direction);
                 } // 检测移动，积累count到一定后没有一定随机更换方向
@@ -2051,6 +2062,7 @@
           _this2.setState({
             list: list
           }, function () {
+            eventBus.emit(eventBus.ADDED_ENEMY);
             var tank = _this2.ref['tank' + id]; // 红闪
 
             if (item[9]) {
@@ -2390,7 +2402,7 @@
 
       var item = list[i]; // 防止自己没命了
 
-      if (item[2] === 0) {
+      if (item[2] < 0) {
         continue;
       }
 
@@ -3022,6 +3034,7 @@
           var y = Math.floor(Math.random() * (data.current.box[3] - data.current.box[1]) * 8) + data.current.box[1] * 8;
           var hash = _this2.state.hash;
           var type = list[i];
+          type = 'life';
           var o = hash[type] = {
             x: x,
             y: y
@@ -3124,6 +3137,108 @@
     }]);
 
     return Item;
+  }(karas$1.Component);
+
+  var Status = /*#__PURE__*/function (_karas$Component) {
+    _inherits(Status, _karas$Component);
+
+    var _super = _createSuper(Status);
+
+    function Status() {
+      var _this;
+
+      _classCallCheck(this, Status);
+
+      _this = _super.call(this);
+      _this.state = {
+        show: false,
+        life: 0,
+        list: []
+      };
+      return _this;
+    }
+
+    _createClass(Status, [{
+      key: "componentDidMount",
+      value: function componentDidMount() {
+        var _this2 = this;
+
+        eventBus.on([eventBus.WILL_GAME], function () {
+          _this2.setState({
+            show: true,
+            life: data.current.player[0][2],
+            list: data.current.enemy || []
+          });
+        });
+        eventBus.on(eventBus.LIFE, function () {
+          _this2.setState({
+            life: _this2.state.life + 1
+          });
+        });
+        eventBus.on(eventBus.HIT_US, function () {
+          _this2.setState({
+            life: _this2.state.life - 1
+          });
+        });
+        eventBus.on(eventBus.ADDED_ENEMY, function () {
+          _this2.setState({
+            list: data.current.enemy || []
+          });
+        });
+        eventBus.on(eventBus.BEFORE_MENU, function () {
+          _this2.setState({
+            show: false,
+            life: 0,
+            list: []
+          });
+        });
+      }
+    }, {
+      key: "render",
+      value: function render() {
+        return karas$1.createElement("div", {
+          style: {
+            position: 'absolute',
+            left: 20,
+            right: 20,
+            bottom: 20,
+            display: this.state.show ? 'block' : 'none'
+          }
+        }, karas$1.createElement("div", {
+          ref: "life",
+          style: {
+            display: 'flex',
+            alignItems: 'center'
+          }
+        }, karas$1.createElement("span", {
+          style: {
+            width: 32,
+            height: 32,
+            background: 'url(tank.png) no-repeat -748px -170px'
+          }
+        }), karas$1.createElement("strong", {
+          style: {
+            color: '#000'
+          }
+        }, this.state.life || 0)), karas$1.createElement("div", {
+          ref: "list"
+        }, this.state.list.map(function (item) {
+          if (item[3] !== 0) {
+            return null;
+          }
+
+          return karas$1.createElement("span", {
+            style: {
+              width: 32,
+              height: 32,
+              background: 'url(tank.png) no-repeat -340 -204'
+            }
+          });
+        })));
+      }
+    }]);
+
+    return Status;
   }(karas$1.Component);
 
   var AudioController = /*#__PURE__*/function () {
@@ -3319,7 +3434,7 @@
 
   new AudioController();
 
-  var root = karas.render(karas.createElement("canvas", {
+  var root = karas.render(karas.createElement("svg", {
     width: 600,
     height: 600,
     cache: "1"
@@ -3343,6 +3458,8 @@
     ref: "boom"
   }), karas.createElement(Hit, {
     ref: "hit"
+  }), karas.createElement(Status, {
+    ref: "status"
   }), karas.createElement(Menu, {
     ref: "menu"
   }), karas.createElement(StageNum, {

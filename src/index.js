@@ -11,13 +11,14 @@ import Bullet from './Bullet';
 import Hit from './Hit';
 import Boom from './Boom';
 import Item from './Item';
+import Status from './Status';
 import eventBus from './eventBus';
 import data from './data';
 import sound from './Sound';
 // sound.mute();
 
 let root = karas.render(
-  <canvas width={600} height={600} cache="1">
+  <svg width={600} height={600} cache="1">
     <Box ref="box" />
     <Brick ref="brick" />
     <Iron ref="iron" />
@@ -28,10 +29,11 @@ let root = karas.render(
     <Bullet ref="bullet" />
     <Boom ref="boom" />
     <Hit ref="hit" />
+    <Status ref="status"/>
     <Menu ref="menu" />
     <StageNum ref="stageNum" />
     <GameOver ref="gameOver" />
-  </canvas>,
+  </svg>,
   '#canvas'
 );
 

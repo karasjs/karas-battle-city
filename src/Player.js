@@ -81,7 +81,7 @@ class Player extends karas.Component {
           }
           eventBus.emit(eventBus.BOOM, item[5] + 16, item[6] + 16);
           let life = item[2]--;
-          if(life < 0) {
+          if(life <= 0) {
             player.updateStyle({
               visibility: 'hidden',
             });
@@ -134,6 +134,14 @@ class Player extends karas.Component {
           });
         }
       });
+      let n = 0;
+      data.current.player.forEach(item => {
+        n += item[2];
+      });
+      if(n < 0) {
+        eventBus.gameState = eventBus.GAME_OVER;
+        eventBus.emit(eventBus.PLAYER_NO_LIFE);
+      }
     });
     eventBus.on(eventBus.HIT_US_BY_US, (id, x, y, us) => {
       us.forEach(item => {

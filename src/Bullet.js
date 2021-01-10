@@ -126,7 +126,7 @@ function checkHitUs(position, direction, dx, dy, index, list) {
     }
     let item = list[i];
     // 防止自己没命了
-    if(item[2] === 0) {
+    if(item[2] < 0) {
       continue;
     }
     let x1 = item[5];

@@ -10,7 +10,7 @@ class GameOver extends karas.Component {
   }
 
   componentDidMount () {
-    eventBus.on(eventBus.HIT_HOME, () => {
+    eventBus.on([eventBus.HIT_HOME, eventBus.PLAYER_NO_LIFE], () => {
       eventBus.gameState = eventBus.GAME_OVER;
       eventBus.emit(eventBus.GAME_OVER);
 

@@ -25,10 +25,12 @@ eventBus.HIT_US = 'HIT_US';
 eventBus.HIT_US_BY_US = 'HIT_US_BY_US';
 
 eventBus.ADD_ENEMY = 'ADD_ENEMY';
+eventBus.ADDED_ENEMY = 'ADDED_ENEMY';
 eventBus.ENEMY_FIRE = 'ENEMY_FIRE';
 eventBus.SHOOT = 'SHOOT';
 
 eventBus.PLAY_REBONE = 'PLAY_REBONE';
+eventBus.PLAYER_NO_LIFE = 'PLAYER_NO_LIFE';
 
 eventBus.BOOM = 'BOOM';
 
