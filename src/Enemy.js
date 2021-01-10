@@ -241,7 +241,7 @@ class Enemy extends karas.Component {
             // 积累一定随机时间后开火
             let fire = --item[8];
             if(fire <= 0) {
-              item[8] = 10 + Math.floor(Math.random() * ENEMY_FIRE_COUNT);
+              item[8] = 20 + Math.floor(Math.random() * ENEMY_FIRE_COUNT);
               eventBus.emit(eventBus.ENEMY_FIRE, i, [px, py], direction);
             }
             // 检测移动，积累count到一定后没有一定随机更换方向

@@ -40,7 +40,7 @@ class Item extends karas.Component {
       let x = Math.floor(Math.random() * (data.current.box[2] - data.current.box[0]) * 8) + data.current.box[2] * 8;
       let y = Math.floor(Math.random() * (data.current.box[3] - data.current.box[1]) * 8) + data.current.box[1] * 8;
       let hash = this.state.hash;
-      let type = list[i];type='life';
+      let type = list[i];
       let o = hash[type] = {
         x,
         y,

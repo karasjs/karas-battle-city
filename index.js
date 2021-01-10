@@ -2013,7 +2013,7 @@
                 var fire = --item[8];
 
                 if (fire <= 0) {
-                  item[8] = 10 + Math.floor(Math.random() * ENEMY_FIRE_COUNT);
+                  item[8] = 20 + Math.floor(Math.random() * ENEMY_FIRE_COUNT);
                   eventBus.emit(eventBus.ENEMY_FIRE, i, [px, py], direction);
                 } // 检测移动，积累count到一定后没有一定随机更换方向
 
@@ -2168,7 +2168,7 @@
                             data.num++;
                             data.num %= data.total;
                             eventBus.emit(eventBus.GAME_NEXT);
-                          }, 1000);
+                          }, 2000);
                         }
                       })();
                     }
@@ -3087,7 +3087,6 @@
           var y = Math.floor(Math.random() * (data.current.box[3] - data.current.box[1]) * 8) + data.current.box[1] * 8;
           var hash = _this2.state.hash;
           var type = list[i];
-          type = 'life';
           var o = hash[type] = {
             x: x,
             y: y
