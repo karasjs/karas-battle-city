@@ -29,5 +29,8 @@
   },
   "license": "MIT",
   "readmeFilename": "README.md",
-  "author": "army8735 <army8735@qq.com>"
+  "author": "army8735 <army8735@qq.com>",
+  "dependencies": {
+    "howler": "^2.2.1"
+  }
 }

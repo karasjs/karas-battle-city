@@ -6,7 +6,7 @@ class Menu extends karas.Component {
     super(props);
   }
 
-  componentDidMount() {
+  componentDidMount () {
     let sr = this.shadowRoot;
     let tank = this.ref.tank;
     let animation = this.animation = sr.animate([
@@ -49,23 +49,23 @@ class Menu extends karas.Component {
     });
   }
 
-  show() {
+  show () {
     this.updateStyle({
       visibility: 'visible',
     });
     this.componentDidMount();
   }
 
-  fastShow() {
-    if(this.animation) {
+  fastShow () {
+    if (this.animation) {
       this.animation.finish();
       this.animation = null;
     }
   }
 
-  altPlayerNum() {
+  altPlayerNum () {
     let n = eventBus.playerNum = eventBus.playerNum === 2 ? 1 : 2;
-    if(n === 2) {
+    if (n === 2) {
       this.ref.tank.updateStyle({
         translateY: 32,
       });
@@ -77,7 +77,7 @@ class Menu extends karas.Component {
     }
   }
 
-  render() {
+  render () {
     return <div style={{
       position: 'absolute',
       left: '50%',
@@ -88,20 +88,20 @@ class Menu extends karas.Component {
       translateY: 300,
     }}>
       <img src="menu.png"
-           style={{
-             width: '100%',
-             height: '100%',
-           }}/>
+        style={{
+          width: '100%',
+          height: '100%',
+        }} />
       <div ref="tank"
-           style={{
-             position: 'absolute',
-             left: 100,
-             top: 216,
-             width: 32,
-             height: 32,
-             background: 'url(tank.png) no-repeat -68px -272px',
-             visibility: 'hidden',
-           }}/>
+        style={{
+          position: 'absolute',
+          left: 100,
+          top: 216,
+          width: 32,
+          height: 32,
+          background: 'url(tank.png) no-repeat -68px -272px',
+          visibility: 'hidden',
+        }} />
     </div>;
   }
 }
