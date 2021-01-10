@@ -33,7 +33,7 @@ class AudioController {
       preload: true,
       volume: 0.5,
     });
-    this.hitTank = new Howl({
+    this.boom = new Howl({
       src: 'sound/boom1.mp3',
       format: 'mp3',
       loop: false,
@@ -75,6 +75,36 @@ class AudioController {
       preload: true,
       volume: 0.5,
     });
+    this.occur = new Howl({
+      src: 'sound/occur.mp3',
+      format: 'mp3',
+      loop: false,
+      preload: true,
+      volume: 0.5,
+    });
+    this.get = new Howl({
+      src: 'sound/get.mp3',
+      format: 'mp3',
+      loop: false,
+      preload: true,
+      volume: 0.5,
+    });
+    this.life = new Howl({
+      src: 'sound/life.mp3',
+      format: 'mp3',
+      loop: false,
+      preload: true,
+      volume: 0.5,
+    });
+    eventBus.on(eventBus.OCCUR, () => {
+      this.occur.play();
+    });
+    eventBus.on(eventBus.GET, () => {
+      this.get.play();
+    });
+    eventBus.on(eventBus.LIFE, () => {
+      this.life.play();
+    });
     eventBus.on(eventBus.SHOOT, () => {
       this.shoot0.play();
     });
@@ -105,15 +135,15 @@ class AudioController {
     eventBus.on(eventBus.HIT_IRON, () => {
       this.hitIron.play();
     });
-    eventBus.on(eventBus.HIT_ENEMY, (id, x, y, enemy) => {
-      if (enemy[0][10] === 0) {
-        this.hitTank.play();
-      } else {
-        this.hitIron.play();
-      }
-    });
+    // eventBus.on(eventBus.HIT_ENEMY, (id, x, y, enemy) => {
+    //   if (!enemy[id][10] && !enemy[id][0]) {
+    //     this.hitTank.play();
+    //   } else {
+    //     this.hitIron.play();
+    //   }
+    // });
     eventBus.on(eventBus.BOOM, () => {
-      this.hitTank.play();
+      this.boom.play();
     });
     eventBus.on(eventBus.HIT_HOME, () => {
       this.hitHome.play();

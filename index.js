@@ -198,6 +198,9 @@
   eventBus.SHOOT = 'SHOOT';
   eventBus.PLAY_REBONE = 'PLAY_REBONE';
   eventBus.BOOM = 'BOOM';
+  eventBus.OCCUR = 'OCCUR';
+  eventBus.GET = 'GET';
+  eventBus.LIFE = 'LIFE';
 
   var Menu = /*#__PURE__*/function (_karas$Component) {
     _inherits(Menu, _karas$Component);
@@ -839,7 +842,7 @@
             if (count >= data.current.enemy.length) {
               clearInterval(interval);
             }
-          }, 311000);
+          }, 3000);
         });
         eventBus.on(eventBus.PLAY_REBONE, function (i) {
           _this2.show('player', i);
@@ -1994,7 +1997,7 @@
             item[7] = 0; // 计时初始化
 
             item[8] = Math.floor(Math.random() * ENEMY_FIRE_COUNT);
-            item[9] = i && i % 5 === 0 ? 1 : 0; // 每5出红
+            item[9] = i % 5 === 0 ? 1 : 0; // 每5出红
 
             item[10] = item[2] > 3 ? item[2] - 3 : 0; // 3厚tank，4,5加厚tank
           }
@@ -2474,6 +2477,10 @@
               var n = 0; // 红和厚不减
 
               enemy.forEach(function (item) {
+                if (item[9]) {
+                  eventBus.emit(eventBus.OCCUR);
+                }
+
                 if (!item[10] && !item[9]) {
                   n++;
                 }
@@ -2685,6 +2692,7 @@
         eventBus.on(eventBus.BOOM, function (x, y) {
           var hash = _this2.state.hash;
           var id = x + ',' + y;
+          console.log(x, y);
           hash[id] = {
             x: x,
             y: y
@@ -2818,7 +2826,7 @@
           preload: true,
           volume: 0.5
         });
-        this.hitTank = new Howl({
+        this.boom = new Howl({
           src: 'sound/boom1.mp3',
           format: 'mp3',
           loop: false,
@@ -2860,6 +2868,36 @@
           preload: true,
           volume: 0.5
         });
+        this.occur = new Howl({
+          src: 'sound/occur.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.get = new Howl({
+          src: 'sound/get.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.life = new Howl({
+          src: 'sound/life.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        eventBus.on(eventBus.OCCUR, function () {
+          _this.occur.play();
+        });
+        eventBus.on(eventBus.GET, function () {
+          _this.get.play();
+        });
+        eventBus.on(eventBus.LIFE, function () {
+          _this.life.play();
+        });
         eventBus.on(eventBus.SHOOT, function () {
           _this.shoot0.play();
         });
@@ -2896,16 +2934,16 @@
         });
         eventBus.on(eventBus.HIT_IRON, function () {
           _this.hitIron.play();
-        });
-        eventBus.on(eventBus.HIT_ENEMY, function (id, x, y, enemy) {
-          if (enemy[0][10] === 0) {
-            _this.hitTank.play();
-          } else {
-            _this.hitIron.play();
-          }
-        });
+        }); // eventBus.on(eventBus.HIT_ENEMY, (id, x, y, enemy) => {
+        //   if (!enemy[id][10] && !enemy[id][0]) {
+        //     this.hitTank.play();
+        //   } else {
+        //     this.hitIron.play();
+        //   }
+        // });
+
         eventBus.on(eventBus.BOOM, function () {
-          _this.hitTank.play();
+          _this.boom.play();
         });
         eventBus.on(eventBus.HIT_HOME, function () {
           _this.hitHome.play();

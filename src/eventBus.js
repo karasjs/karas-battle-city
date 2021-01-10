@@ -31,4 +31,8 @@ eventBus.PLAY_REBONE = 'PLAY_REBONE';
 
 eventBus.BOOM = 'BOOM';
 
+eventBus.OCCUR = 'OCCUR';
+eventBus.GET = 'GET';
+eventBus.LIFE = 'LIFE';
+
 export default eventBus;

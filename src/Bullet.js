@@ -359,6 +359,9 @@ class Bullet extends karas.Component {
           let n = 0;
           // 红和厚不减
           enemy.forEach(item => {
+            if(item[9]) {
+              eventBus.emit(eventBus.OCCUR);
+            }
             if(!item[10] && !item[9]) {
               n++;
             }
