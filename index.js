@@ -169,7 +169,7 @@
       "iron": [[30, 15], [29, 15], [6, 15], [5, 15], [17, 7], [18, 7], [18, 8], [17, 8]],
       "home": [[17, 26]],
       "player": [[13, 26, 2, 1], [21, 26, 2, 1]],
-      "enemy": [[5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 3, 0], [17, 2, 4, 0], [29, 2, 5, 0]],
+      "enemy": [[5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 3, 0], [17, 2, 4, 0], [29, 2, 5, 0], [5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 3, 0], [17, 2, 4, 0], [29, 2, 5, 0]],
       "box": [5, 2, 31, 28]
     },
     current: null
@@ -183,6 +183,7 @@
   eventBus.GAMEING = 4;
   eventBus.GAME_OVER = 5;
   eventBus.GAME_OVER_WAIT = 6;
+  eventBus.GAME_NEXT = 7;
   eventBus.gameState = eventBus.BEFORE_MENU;
   eventBus.activeEnemyNum = 0;
   eventBus.playerNum = 1;
@@ -194,9 +195,15 @@
   eventBus.HIT_US = 'HIT_US';
   eventBus.HIT_US_BY_US = 'HIT_US_BY_US';
   eventBus.ADD_ENEMY = 'ADD_ENEMY';
+  eventBus.ADDED_ENEMY = 'ADDED_ENEMY';
   eventBus.ENEMY_FIRE = 'ENEMY_FIRE';
+  eventBus.SHOOT = 'SHOOT';
   eventBus.PLAY_REBONE = 'PLAY_REBONE';
+  eventBus.PLAYER_NO_LIFE = 'PLAYER_NO_LIFE';
   eventBus.BOOM = 'BOOM';
+  eventBus.OCCUR = 'OCCUR';
+  eventBus.GET = 'GET';
+  eventBus.LIFE = 'LIFE';
 
   var Menu = /*#__PURE__*/function (_karas$Component) {
     _inherits(Menu, _karas$Component);
@@ -480,8 +487,9 @@
       value: function componentDidMount() {
         var _this2 = this;
 
-        eventBus.on(eventBus.HIT_HOME, function () {
+        eventBus.on([eventBus.HIT_HOME, eventBus.PLAYER_NO_LIFE], function () {
           eventBus.gameState = eventBus.GAME_OVER;
+          eventBus.emit(eventBus.GAME_OVER);
 
           _this2.setState({
             show: true
@@ -660,14 +668,82 @@
           for (var list = _this2.state.list, i = 0, len = list.length; i < len; i++) {
             var item = list[i];
 
-            if (!item[2] && hash.hasOwnProperty(item[0]) && hash[item[0]].indexOf(item[1]) > -1) {
-              item.push(true);
+            if (!item[2] && !item[3] && hash.hasOwnProperty(item[0]) && hash[item[0]].indexOf(item[1]) > -1) {
+              item[2] = 1;
 
               _this2.ref[item[0] + ',' + item[1]].updateStyle({
                 display: 'none'
               });
             }
           }
+        });
+        eventBus.on(eventBus.GET, function (type) {
+          if (type === 'wall') {
+            var home = data.current.home;
+            var len = home.length;
+            var list = [];
+
+            _this2.state.list.forEach(function (item) {
+              var _item = _slicedToArray(item, 2),
+                  x = _item[0],
+                  y = _item[1];
+
+              for (var i = 0; i < len; i++) {
+                var _home$i = _slicedToArray(home[i], 2),
+                    x1 = _home$i[0],
+                    y1 = _home$i[1];
+
+                var x2 = x1 + 1;
+                var y2 = y1 + 1;
+
+                if (Math.abs(x - x1) + Math.abs(y - y1) <= 2 || Math.abs(x - x1) + Math.abs(y - y2) <= 2 || Math.abs(x - x2) + Math.abs(y - y1) <= 2 || Math.abs(x - x2) + Math.abs(y - y2) <= 2) {
+                  item[3] = 1;
+                  var target = _this2.ref[x + ',' + y];
+                  target.updateStyle({
+                    display: 'block',
+                    backgroundPosition: '0 -204px'
+                  });
+                  list.push({
+                    item: item,
+                    target: target
+                  });
+                }
+              }
+            });
+
+            if (list.length) {
+              _this2.timeout = setTimeout(function () {
+                var a;
+                list.forEach(function (o) {
+                  var target = o.target;
+                  a = target.animate([{}, {
+                    backgroundPosition: '-612px -170px'
+                  }], {
+                    duration: 200,
+                    iterations: 16,
+                    easing: 'steps(1)',
+                    direction: 'alternate'
+                  });
+                });
+                a.on('finish', function () {
+                  list.forEach(function (o) {
+                    var item = o.item,
+                        target = o.target;
+                    item[2] = 0;
+                    item[3] = 0;
+                    target.clearAnimate();
+                    target.updateStyle({
+                      display: item[2] ? 'none' : 'block',
+                      backgroundPosition: '-612px -170px'
+                    });
+                  });
+                });
+              }, 10000);
+            }
+          }
+        });
+        eventBus.on([eventBus.GAME_OVER, eventBus.GAME_NEXT], function () {
+          clearTimeout(_this2.timeout);
         });
       }
     }, {
@@ -683,9 +759,9 @@
             visibility: this.state.show ? 'visible' : 'hidden'
           }
         }, this.state.list.map(function (item) {
-          var _item = _slicedToArray(item, 2),
-              x = _item[0],
-              y = _item[1];
+          var _item2 = _slicedToArray(item, 2),
+              x = _item2[0],
+              y = _item2[1];
 
           var left = x * 16;
           var top = y * 16;
@@ -815,7 +891,7 @@
           }
 
           var count = 0;
-          var interval = setInterval(function () {
+          var interval = _this2.interval = setInterval(function () {
             if (eventBus.gameState !== eventBus.GAMEING) {
               clearInterval(interval);
               return;
@@ -837,10 +913,13 @@
             if (count >= data.current.enemy.length) {
               clearInterval(interval);
             }
-          }, 3000);
+          }, 1000);
         });
         eventBus.on(eventBus.PLAY_REBONE, function (i) {
           _this2.show('player', i);
+        });
+        eventBus.on([eventBus.GAME_OVER, eventBus.GAME_NEXT], function () {
+          clearInterval(_this2.interval);
         });
       }
     }, {
@@ -1089,12 +1168,45 @@
     }
   }
 
+  function checkItem(tx1, ty1, direction) {
+    var list = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : [];
+    var tx2 = tx1 + 32;
+    var ty2 = ty1 + 32;
+
+    for (var i = 0, len = list.length; i < len; i++) {
+      var item = list[i];
+      var x1 = item[1];
+      var y1 = item[2];
+      var x2 = x1 + 32;
+      var y2 = y1 + 32;
+
+      if (direction === 0) {
+        if (x1 < tx2 && x2 > tx1 && ty1 <= y2 && ty1 >= y1) {
+          return item;
+        }
+      } else if (direction === 1) {
+        if (y1 < ty2 && y2 > ty1 && tx2 >= x1 && tx2 <= x2) {
+          return item;
+        }
+      } else if (direction === 2) {
+        if (x1 < tx2 && x2 > tx1 && ty2 >= y1 && ty2 <= y2) {
+          return item;
+        }
+      } else if (direction === 3) {
+        if (y1 < ty2 && y2 > ty1 && tx1 <= x2 && tx1 >= x1) {
+          return item;
+        }
+      }
+    }
+  }
+
   var util = {
     checkBox: checkBox,
     checkMove: checkMove,
     checkEnemy: checkEnemy,
     checkUs: checkUs,
-    checkHome: checkHome
+    checkHome: checkHome,
+    checkItem: checkItem
   };
 
   var MOVE_PX = 2;
@@ -1177,17 +1289,17 @@
 
             if (i !== undefined) {
               var _item = _this2.state.list[i];
-              eventBus.emit(eventBus.BOOM, _item[5] + 16, _item[6] + 16);
               var player = _this2.ref['player' + i];
-              var tank = _this2.ref['tank' + i];
+              var tank = _this2.ref['tank' + i]; // 保护状态
 
               if (_item[3] === 1) {
                 return;
               }
 
+              eventBus.emit(eventBus.BOOM, _item[5] + 16, _item[6] + 16);
               var life = _item[2]--;
 
-              if (life < 0) {
+              if (life <= 0) {
                 player.updateStyle({
                   visibility: 'hidden'
                 });
@@ -1235,6 +1347,15 @@
               });
             }
           });
+          var n = 0;
+          data.current.player.forEach(function (item) {
+            n += item[2];
+          });
+
+          if (n < 0) {
+            eventBus.gameState = eventBus.GAME_OVER;
+            eventBus.emit(eventBus.PLAYER_NO_LIFE);
+          }
         });
         eventBus.on(eventBus.HIT_US_BY_US, function (id, x, y, us) {
           us.forEach(function (item) {
@@ -1296,6 +1417,8 @@
     }, {
       key: "move",
       value: function move(index, direction) {
+        var _this3 = this;
+
         var player = this.ref['player' + index];
         var tank = this.ref['tank' + index];
 
@@ -1386,6 +1509,66 @@
             return;
           }
 
+          var items = util.checkItem(item[5], item[6], direction, data.current.item);
+
+          if (items) {
+            switch (items[0]) {
+              case 'life':
+                _this3.state.list[index][2]++;
+                eventBus.emit(eventBus.LIFE, items[0]);
+                break;
+
+              case 'pause':
+                eventBus.emit(eventBus.GET, items[0]);
+                break;
+
+              case 'protect':
+                _this3.state.list[index][3] = 1;
+                var _player = _this3.ref['player' + index];
+                var shield = _this3.ref['shield' + index];
+
+                _player.clearAnimate();
+
+                var fadeIn = _player.animate([{
+                  opacity: 0.85
+                }, {
+                  opacity: 0.7
+                }], {
+                  duration: 100,
+                  iterations: PROTECT_COUNT * 4,
+                  direction: 'alternate',
+                  easing: 'steps(2)'
+                });
+
+                fadeIn.on('finish', function () {
+                  _player.removeAnimate(fadeIn);
+
+                  item[3] = 0;
+                });
+                shield.clearAnimate();
+                shield.animate([{
+                  backgroundPosition: '-442 -238'
+                }, {
+                  backgroundPosition: '-510 -238'
+                }], {
+                  duration: 100,
+                  iterations: PROTECT_COUNT * 4,
+                  direction: 'alternate',
+                  easing: 'steps(2)'
+                });
+                eventBus.emit(eventBus.GET, items[0]);
+                break;
+
+              case 'boom':
+                eventBus.emit(eventBus.GET, items[0]);
+                break;
+
+              case 'wall':
+                eventBus.emit(eventBus.GET, items[0]);
+                break;
+            }
+          }
+
           if (direction === 0) {
             item[6] -= MOVE_PX;
             player.updateStyle({
@@ -1410,6 +1593,9 @@
         };
 
         karas$1.animate.frame.onFrame(cb);
+        eventBus.on([eventBus.GAME_OVER, eventBus.GAME_NEXT], function () {
+          karas$1.animate.frame.offFrame(cb);
+        });
       }
     }, {
       key: "stop",
@@ -1554,7 +1740,7 @@
     4: 1,
     5: 1
   };
-  var ENEMY_FIRE_COUNT = 100;
+  var ENEMY_FIRE_COUNT = 5;
 
   function getBgP(type, direction, red, life) {
     var p = '-136 -68';
@@ -1722,17 +1908,7 @@
       backgroundPosition: p
     }, {
       backgroundPosition: p2.join(' ')
-    }]; // let p = getBgP(type, direction, 0, life).split(' ');
-    // p = parseInt(p[0]);
-    // let p2 = p - 34;
-    // return [
-    //   {
-    //     backgroundPositionX: p,
-    //   },
-    //   {
-    //     backgroundPositionX: p2,
-    //   },
-    // ];
+    }];
   }
 
   var Enemy = /*#__PURE__*/function (_karas$Component) {
@@ -1776,7 +1952,11 @@
             frameJump = 0;
 
             _this2.state.list.forEach(function (item, i) {
-              // console.log(item);
+              // 暂停道具
+              if (data.current.enemyPause) {
+                return;
+              }
+
               var _item = _slicedToArray(item, 7),
                   x = _item[0],
                   y = _item[1],
@@ -1795,7 +1975,7 @@
 
                 var fire = --item[8];
 
-                if (fire === 0) {
+                if (fire <= 0) {
                   item[8] = ENEMY_FIRE_COUNT + Math.floor(Math.random() * ENEMY_FIRE_COUNT);
                   eventBus.emit(eventBus.ENEMY_FIRE, i, [px, py], direction);
                 } // 检测移动，积累count到一定后没有一定随机更换方向
@@ -1882,6 +2062,7 @@
           _this2.setState({
             list: list
           }, function () {
+            eventBus.emit(eventBus.ADDED_ENEMY);
             var tank = _this2.ref['tank' + id]; // 红闪
 
             if (item[9]) {
@@ -1940,6 +2121,28 @@
                     }
               }
             }
+          }
+        });
+        eventBus.on(eventBus.GET, function (type) {
+          if (type === 'boom') {
+            var list = _this2.state.list;
+            list.forEach(function (item, i) {
+              var state = item[3]; // 防止死tank
+
+              if (state < 2) {
+                item[9] = 0;
+                item[10] = 0;
+                item[3] = 2;
+                var tank = _this2.ref['tank' + i];
+                tank.clearAnimate();
+
+                _this2.setState({
+                  list: list
+                });
+
+                eventBus.emit(eventBus.BOOM, item[5] + 16, item[6] + 16);
+              }
+            });
           }
         });
         eventBus.on(eventBus.BEFORE_MENU, function () {
@@ -2088,7 +2291,7 @@
     }
   }
 
-  function checkHit(position, direction, dx, dy, list) {
+  function checkHit(position, direction, dx, dy, list, _double) {
     var _position2 = _slicedToArray(position, 2),
         x = _position2[0],
         y = _position2[1];
@@ -2098,19 +2301,20 @@
     var res = [];
 
     for (var i = 0, len = list.length; i < len; i++) {
-      var _list$i = _slicedToArray(list[i], 3),
+      var _list$i = _slicedToArray(list[i], 4),
           x0 = _list$i[0],
           y0 = _list$i[1],
-          disappear = _list$i[2];
+          disappear = _list$i[2],
+          change = _list$i[3];
 
-      if (disappear) {
+      if (disappear && !change) {
         continue;
       }
 
       var x1 = x0 * 16;
       var y1 = y0 * 16;
-      var x2 = x1 + 16;
-      var y2 = y1 + 16;
+      var x2 = x1 + 16 * (_double ? 2 : 1);
+      var y2 = y1 + 16 * (_double ? 2 : 1);
 
       if (direction === 0) {
         if (y - 4 <= y2 && y + 4 >= y1 && x + 20 >= x1 && x + 12 <= x2) {
@@ -2198,7 +2402,7 @@
 
       var item = list[i]; // 防止自己没命了
 
-      if (item[2] === 0) {
+      if (item[2] < 0) {
         continue;
       }
 
@@ -2347,7 +2551,7 @@
               var iron = checkHit(position, direction, d.x, d.y, data.current.iron);
 
               if (iron) {
-                emitHit(node, id, direction, d.x, d.y, eventBus.HIT_IRON, brick);
+                emitHit(node, id, direction, d.x, d.y, eventBus.HIT_IRON, iron);
               }
 
               var us = checkHitUs(position, direction, d.x, d.y, -1, data.current.player);
@@ -2356,7 +2560,7 @@
                 emitHit(node, id, direction, d.x, d.y, eventBus.HIT_US, us);
               }
 
-              var home = checkHit(position, direction, d.x, d.y, data.current.home);
+              var home = checkHit(position, direction, d.x, d.y, data.current.home, true);
 
               if (home) {
                 emitHit(node, id, direction, d.x, d.y, eventBus.HIT_HOME, home);
@@ -2388,18 +2592,19 @@
         var now = Date.now();
 
         if (length) {
-          var last = target[length - 1]; // 200ms限制
+          var last = target[length - 1]; // 300ms限制
 
-          if (now - last.time < 200) {
+          if (now - last.time < 300) {
             return;
-          } // 3发限制
+          } // 2发限制
 
 
-          if (length >= 3) {
+          if (length >= 2) {
             return;
           }
-        } // 每个子弹相对于tank当时位置+方向生成唯一id
+        }
 
+        eventBus.emit(eventBus.SHOOT); // 每个子弹相对于tank当时位置+方向生成唯一id
 
         var id = uuid++;
         target.push({
@@ -2469,6 +2674,10 @@
               var n = 0; // 红和厚不减
 
               enemy.forEach(function (item) {
+                if (item[9]) {
+                  eventBus.emit(eventBus.OCCUR);
+                }
+
                 if (!item[10] && !item[9]) {
                   n++;
                 }
@@ -2483,7 +2692,7 @@
               emitHit(node, id, direction, d.x, d.y, eventBus.HIT_US_BY_US, us);
             }
 
-            var home = checkHit(position, direction, d.x, d.y, data.current.home);
+            var home = checkHit(position, direction, d.x, d.y, data.current.home, true);
 
             if (home) {
               emitHit(node, id, direction, d.x, d.y, eventBus.HIT_HOME, home);
@@ -2773,7 +2982,459 @@
     return Boom;
   }(karas$1.Component);
 
-  var root = karas.render(karas.createElement("canvas", {
+  var TYPE = {
+    pause: {
+      px: 476,
+      py: 204
+    },
+    protect: {
+      px: 612,
+      py: 204
+    },
+    boom: {
+      px: 680,
+      py: 204
+    },
+    wall: {
+      px: 748,
+      py: 204
+    },
+    life: {
+      px: 816,
+      py: 204
+    }
+  };
+
+  var Item = /*#__PURE__*/function (_karas$Component) {
+    _inherits(Item, _karas$Component);
+
+    var _super = _createSuper(Item);
+
+    function Item(props) {
+      var _this;
+
+      _classCallCheck(this, Item);
+
+      _this = _super.call(this, props);
+      _this.state = {
+        hash: {}
+      };
+      return _this;
+    }
+
+    _createClass(Item, [{
+      key: "componentDidMount",
+      value: function componentDidMount() {
+        var _this2 = this;
+
+        var list = ['pause', 'protect', 'boom', 'wall', 'life'];
+        eventBus.on(eventBus.OCCUR, function () {
+          var i = Math.floor(Math.random() * list.length);
+          var x = Math.floor(Math.random() * (data.current.box[2] - data.current.box[0]) * 8) + data.current.box[2] * 8;
+          var y = Math.floor(Math.random() * (data.current.box[3] - data.current.box[1]) * 8) + data.current.box[1] * 8;
+          var hash = _this2.state.hash;
+          var type = list[i];
+          type = 'life';
+          var o = hash[type] = {
+            x: x,
+            y: y
+          };
+          data.current.item = Object.keys(hash).map(function (k) {
+            return [k, hash[k].x, hash[k].y];
+          });
+
+          _this2.setState({
+            hash: hash
+          }, function () {
+            var node = _this2.ref[type];
+            var a = node.animate([{}, {
+              visibility: 'hidden'
+            }], {
+              duration: 200,
+              iterations: 1196,
+              direction: 'alternate'
+            });
+            a.on('finish', function () {
+              if (hash[type] === o) {
+                delete hash[type];
+                data.current.item = Object.keys(hash).map(function (k) {
+                  return [k, hash[k].x, hash[k].y];
+                });
+
+                _this2.setState({
+                  hash: hash
+                });
+              }
+            });
+          });
+        });
+        eventBus.on([eventBus.LIFE, eventBus.GET], function (type) {
+          var hash = _this2.state.hash;
+          delete hash[type];
+          data.current.item = Object.keys(hash).map(function (k) {
+            return [k, hash[k].x, hash[k].y];
+          });
+
+          _this2.setState({
+            hash: hash
+          });
+
+          var count = 0;
+          karas$1.animate.frame.offFrame(_this2.cb);
+
+          if (type === 'pause') {
+            data.current.enemyPause = true;
+
+            var cb = _this2.cb = function (diff) {
+              count += diff;
+
+              if (count > 5000) {
+                data.current.enemyPause = false;
+              }
+            };
+
+            karas$1.animate.frame.onFrame(cb);
+          }
+        });
+        eventBus.on([eventBus.GAME_OVER, eventBus.GAME_NEXT], function () {
+          karas$1.animate.frame.offFrame(_this2.cb);
+        });
+      }
+    }, {
+      key: "render",
+      value: function render() {
+        var _this3 = this;
+
+        return karas$1.createElement("div", {
+          style: {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: '100%',
+            height: '100%'
+          }
+        }, Object.keys(this.state.hash).map(function (type) {
+          var data = _this3.state.hash[type];
+          var x = data.x,
+              y = data.y;
+          var _TYPE$type = TYPE[type],
+              px = _TYPE$type.px,
+              py = _TYPE$type.py;
+          return karas$1.createElement("span", {
+            ref: type,
+            key: type,
+            style: {
+              position: 'absolute',
+              left: x,
+              top: y,
+              width: 32,
+              height: 32,
+              background: "url(tank.png) no-repeat ".concat(-px, " ").concat(-py)
+            }
+          });
+        }));
+      }
+    }]);
+
+    return Item;
+  }(karas$1.Component);
+
+  var Status = /*#__PURE__*/function (_karas$Component) {
+    _inherits(Status, _karas$Component);
+
+    var _super = _createSuper(Status);
+
+    function Status() {
+      var _this;
+
+      _classCallCheck(this, Status);
+
+      _this = _super.call(this);
+      _this.state = {
+        show: false,
+        life: 0,
+        list: []
+      };
+      return _this;
+    }
+
+    _createClass(Status, [{
+      key: "componentDidMount",
+      value: function componentDidMount() {
+        var _this2 = this;
+
+        eventBus.on([eventBus.WILL_GAME], function () {
+          _this2.setState({
+            show: true,
+            life: data.current.player[0][2],
+            list: data.current.enemy || []
+          });
+        });
+        eventBus.on(eventBus.LIFE, function () {
+          _this2.setState({
+            life: _this2.state.life + 1
+          });
+        });
+        eventBus.on(eventBus.HIT_US, function () {
+          _this2.setState({
+            life: _this2.state.life - 1
+          });
+        });
+        eventBus.on(eventBus.ADDED_ENEMY, function () {
+          _this2.setState({
+            list: data.current.enemy || []
+          });
+        });
+        eventBus.on(eventBus.BEFORE_MENU, function () {
+          _this2.setState({
+            show: false,
+            life: 0,
+            list: []
+          });
+        });
+      }
+    }, {
+      key: "render",
+      value: function render() {
+        return karas$1.createElement("div", {
+          style: {
+            position: 'absolute',
+            left: 20,
+            right: 20,
+            bottom: 20,
+            display: this.state.show ? 'block' : 'none'
+          }
+        }, karas$1.createElement("div", {
+          ref: "life",
+          style: {
+            display: 'flex',
+            alignItems: 'center'
+          }
+        }, karas$1.createElement("span", {
+          style: {
+            width: 32,
+            height: 32,
+            background: 'url(tank.png) no-repeat -748px -170px'
+          }
+        }), karas$1.createElement("strong", {
+          style: {
+            color: '#000'
+          }
+        }, this.state.life || 0)), karas$1.createElement("div", {
+          ref: "list"
+        }, this.state.list.map(function (item) {
+          if (item[3] !== 0) {
+            return null;
+          }
+
+          return karas$1.createElement("span", {
+            style: {
+              width: 32,
+              height: 32,
+              background: 'url(tank.png) no-repeat -340 -204'
+            }
+          });
+        })));
+      }
+    }]);
+
+    return Status;
+  }(karas$1.Component);
+
+  var AudioController = /*#__PURE__*/function () {
+    function AudioController() {
+      _classCallCheck(this, AudioController);
+
+      this.initialSuccess = false;
+
+      try {
+        this.init();
+        this.initialSuccess = true;
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
+    _createClass(AudioController, [{
+      key: "init",
+      value: function init() {
+        var _this = this;
+
+        this.mainBGM = new Howl({
+          src: 'sound/start.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.hitBrick = new Howl({
+          src: 'sound/hit_brick.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.hitIron = new Howl({
+          src: 'sound/hit_iron.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.boom = new Howl({
+          src: 'sound/boom1.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.hitHome = new Howl({
+          src: 'sound/boom2.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.shoot0 = new Howl({
+          src: 'sound/shoot0.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.shoot1 = new Howl({
+          src: 'sound/shoot1.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.shoot2 = new Howl({
+          src: 'sound/shoot2.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.shoot3 = new Howl({
+          src: 'sound/shoot3.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.occur = new Howl({
+          src: 'sound/occur.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.get = new Howl({
+          src: 'sound/get.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.life = new Howl({
+          src: 'sound/life.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        eventBus.on(eventBus.OCCUR, function () {
+          _this.occur.play();
+        });
+        eventBus.on(eventBus.GET, function () {
+          _this.get.play();
+        });
+        eventBus.on(eventBus.LIFE, function () {
+          _this.life.play();
+        });
+        eventBus.on(eventBus.SHOOT, function () {
+          _this.shoot0.play();
+        });
+        eventBus.on(eventBus.ENEMY_FIRE, function (i) {
+          switch (data.current.enemy[i][2]) {
+            case 0:
+              _this.shoot2.play();
+
+              break;
+
+            case 1:
+              _this.shoot1.play();
+
+              break;
+
+            case 2:
+              _this.shoot2.play();
+
+              break;
+
+            default:
+              _this.shoot3.play();
+
+          }
+        });
+        eventBus.on(eventBus.WILL_GAME, function () {
+          _this.mainBGM.play();
+        });
+        eventBus.on(eventBus.HIT_BRICK, function (id, x, y, item) {
+          var brick = data.current.brick; // 先判断变铁的
+
+           for (var i = 0, len = brick.length; i < len; i++) {
+            for (var j = item.length - 1; j >= 0; j--) {
+              if (brick[i][3] && brick[i][0] === item[j][0] && brick[i][1] === item[j][1]) {
+                item.splice(j, 1);
+
+                _this.hitIron.play();
+              }
+            }
+          }
+
+          if (!item.length) {
+            return;
+          }
+
+          _this.hitBrick.play();
+        });
+        eventBus.on(eventBus.HIT_BOX, function () {
+          _this.hitBrick.play();
+        });
+        eventBus.on([eventBus.HIT_IRON, eventBus.HIT_ENEMY], function () {
+          _this.hitIron.play();
+        });
+        eventBus.on(eventBus.BOOM, function () {
+          _this.boom.play();
+        });
+        eventBus.on(eventBus.HIT_HOME, function () {
+          _this.hitHome.play();
+        });
+        eventBus.on(eventBus.GET, function () {
+          _this.get.play();
+        });
+        eventBus.on(eventBus.LIFE, function () {
+          _this.life.play();
+        });
+      }
+    }, {
+      key: "play",
+      value: function play() {}
+    }, {
+      key: "mute",
+      value: function mute(muted) {
+        Howler.mute(muted);
+      }
+    }]);
+
+    return AudioController;
+  }();
+
+  new AudioController();
+
+  var root = karas.render(karas.createElement("svg", {
     width: 600,
     height: 600,
     cache: "1"
@@ -2789,12 +3450,16 @@
     ref: "enemy"
   }), karas.createElement(Fade, {
     ref: "fade"
+  }), karas.createElement(Item, {
+    ref: "item"
   }), karas.createElement(Bullet, {
     ref: "bullet"
   }), karas.createElement(Boom, {
     ref: "boom"
   }), karas.createElement(Hit, {
     ref: "hit"
+  }), karas.createElement(Status, {
+    ref: "status"
   }), karas.createElement(Menu, {
     ref: "menu"
   }), karas.createElement(StageNum, {
@@ -2817,6 +3482,7 @@
         } // 开始游戏，赋予data的current为第1局数值
         else if (e.keyCode === 74) {
             eventBus.gameState = eventBus.BEFORE_GAME;
+            eventBus.emit(eventBus.BEFORE_GAME);
             root.ref.stageNum.show(1);
             data.current = karas.util.clone(data[0]);
 

@@ -175,10 +175,43 @@ function checkHome(tx1, ty1, direction, list) {
   }
 }
 
+function checkItem(tx1, ty1, direction, list = []) {
+  let tx2 = tx1 + 32;
+  let ty2 = ty1 + 32;
+  for(let i = 0, len = list.length; i < len; i++) {
+    let item = list[i];
+    let x1 = item[1];
+    let y1 = item[2];
+    let x2 = x1 + 32;
+    let y2 = y1 + 32;
+    if(direction === 0) {
+      if(x1 < tx2 && x2 > tx1 && ty1 <= y2 && ty1 >= y1) {
+        return item;
+      }
+    }
+    else if(direction === 1) {
+      if(y1 < ty2 && y2 > ty1 && tx2 >= x1 && tx2 <= x2) {
+        return item;
+      }
+    }
+    else if(direction === 2) {
+      if(x1 < tx2 && x2 > tx1 && ty2 >= y1 && ty2 <= y2) {
+        return item;
+      }
+    }
+    else if(direction === 3) {
+      if(y1 < ty2 && y2 > ty1 && tx1 <= x2 && tx1 >= x1) {
+        return item;
+      }
+    }
+  }
+}
+
 export default {
   checkBox,
   checkMove,
   checkEnemy,
   checkUs,
   checkHome,
+  checkItem,
 };

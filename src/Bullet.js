@@ -33,27 +33,27 @@ function checkBox(position, direction, dx, dy, box) {
   }
 }
 
-function checkHit(position, direction, dx, dy, list) {
+function checkHit(position, direction, dx, dy, list, double) {
   let [x, y] = position;
   x += dx;
   y += dy;
   let res = [];
   for(let i = 0, len = list.length; i < len; i++) {
-    let [x0, y0, disappear] = list[i];
-    if(disappear) {
+    let [x0, y0, disappear, change] = list[i];
+    if(disappear && !change) {
       continue;
     }
     let x1 = x0 * 16;
     let y1 = y0 * 16;
-    let x2 = x1 + 16;
-    let y2 = y1 + 16;
+    let x2 = x1 + 16 * (double ? 2 : 1);
+    let y2 = y1 + 16 * (double ? 2 : 1);
     if(direction === 0) {
       if(y - 4 <= y2 && y + 4 >= y1 && x + 20 >= x1 && x + 12 <= x2) {
         res.push([x0, y0]);
       }
     }
     else if(direction === 1) {
-      if(x + 36 >=x1 && x + 28 <= x2 && y + 20 >= y1 && y + 12 <= y2) {
+      if(x + 36 >= x1 && x + 28 <= x2 && y + 20 >= y1 && y + 12 <= y2) {
         res.push([x0, y0]);
       }
     }
@@ -126,7 +126,7 @@ function checkHitUs(position, direction, dx, dy, index, list) {
     }
     let item = list[i];
     // 防止自己没命了
-    if(item[2] === 0) {
+    if(item[2] < 0) {
       continue;
     }
     let x1 = item[5];
@@ -255,13 +255,13 @@ class Bullet extends karas.Component {
           }
           let iron = checkHit(position, direction, d.x, d.y, data.current.iron);
           if(iron) {
-            emitHit(node, id, direction, d.x, d.y, eventBus.HIT_IRON, brick);
+            emitHit(node, id, direction, d.x, d.y, eventBus.HIT_IRON, iron);
           }
           let us = checkHitUs(position, direction, d.x, d.y, -1, data.current.player);
           if(us) {
             emitHit(node, id, direction, d.x, d.y, eventBus.HIT_US, us);
           }
-          let home = checkHit(position, direction, d.x, d.y, data.current.home);
+          let home = checkHit(position, direction, d.x, d.y, data.current.home, true);
           if(home) {
             emitHit(node, id, direction, d.x, d.y, eventBus.HIT_HOME, home);
           }
@@ -286,15 +286,16 @@ class Bullet extends karas.Component {
     let now = Date.now();
     if(length) {
       let last = target[length - 1];
-      // 200ms限制
-      if(now - last.time < 200) {
+      // 300ms限制
+      if(now - last.time < 300) {
         return;
       }
-      // 3发限制
-      if(length >= 3) {
+      // 2发限制
+      if(length >= 2) {
         return;
       }
     }
+    eventBus.emit(eventBus.SHOOT);
     // 每个子弹相对于tank当时位置+方向生成唯一id
     let id = uuid++;
     target.push({
@@ -358,6 +359,9 @@ class Bullet extends karas.Component {
           let n = 0;
           // 红和厚不减
           enemy.forEach(item => {
+            if(item[9]) {
+              eventBus.emit(eventBus.OCCUR);
+            }
             if(!item[10] && !item[9]) {
               n++;
             }
@@ -369,7 +373,7 @@ class Bullet extends karas.Component {
         if(us) {
           emitHit(node, id, direction, d.x, d.y, eventBus.HIT_US_BY_US, us);
         }
-        let home = checkHit(position, direction, d.x, d.y, data.current.home);
+        let home = checkHit(position, direction, d.x, d.y, data.current.home, true);
         if(home) {
           emitHit(node, id, direction, d.x, d.y, eventBus.HIT_HOME, home);
         }

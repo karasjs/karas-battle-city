@@ -19,7 +19,7 @@ const MOVE_PX = {
   4: 1,
   5: 1,
 };
-const ENEMY_FIRE_COUNT = 100;
+const ENEMY_FIRE_COUNT = 5;
 
 function getBgP(type, direction, red, life) {
   let p = '-136 -68';
@@ -197,17 +197,6 @@ function getFrame(type, direction, life) {
       backgroundPosition: p2.join(' '),
     },
   ];
-  // let p = getBgP(type, direction, 0, life).split(' ');
-  // p = parseInt(p[0]);
-  // let p2 = p - 34;
-  // return [
-  //   {
-  //     backgroundPositionX: p,
-  //   },
-  //   {
-  //     backgroundPositionX: p2,
-  //   },
-  // ];
 }
 
 class Enemy extends karas.Component {
@@ -233,7 +222,10 @@ class Enemy extends karas.Component {
         }
         frameJump = 0;
         this.state.list.forEach((item, i) => {
-          // console.log(item);
+          // 暂停道具
+          if(data.current.enemyPause) {
+            return;
+          }
           let [x, y, type, state, direction, px, py] = item;
           let red = item[9];
           let life = item[10];
@@ -243,7 +235,7 @@ class Enemy extends karas.Component {
             let movePx = MOVE_PX[type] || 1;
             // 积累一定随机时间后开火
             let fire = --item[8];
-            if(fire === 0) {
+            if(fire <= 0) {
               item[8] = ENEMY_FIRE_COUNT + Math.floor(Math.random() * ENEMY_FIRE_COUNT);
               eventBus.emit(eventBus.ENEMY_FIRE, i, [px, py], direction);
             }
@@ -324,6 +316,7 @@ class Enemy extends karas.Component {
       this.setState({
         list,
       }, () => {
+        eventBus.emit(eventBus.ADDED_ENEMY);
         let tank = this.ref['tank' + id];
         // 红闪
         if(item[9]) {
@@ -385,6 +378,26 @@ class Enemy extends karas.Component {
         }
       }
     });
+    eventBus.on(eventBus.GET, type => {
+      if(type === 'boom') {
+        let list = this.state.list;
+        list.forEach((item, i) => {
+          let state = item[3];
+          // 防止死tank
+          if(state < 2) {
+            item[9] = 0;
+            item[10] = 0;
+            item[3] = 2;
+            let tank = this.ref['tank' + i];
+            tank.clearAnimate();
+            this.setState({
+              list,
+            });
+            eventBus.emit(eventBus.BOOM, item[5] + 16, item[6] + 16);
+          }
+        });
+      }
+    })
     eventBus.on(eventBus.BEFORE_MENU, () => {
       karas.animate.frame.offFrame(this.cb);
     });

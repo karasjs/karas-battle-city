@@ -26,7 +26,7 @@ class Fade extends karas.Component {
         this.show('player', 1);
       }
       let count = 0;
-      let interval = setInterval(() => {
+      let interval = this.interval = setInterval(() => {
         if(eventBus.gameState !== eventBus.GAMEING) {
           clearInterval(interval);
           return;
@@ -44,10 +44,13 @@ class Fade extends karas.Component {
         if(count >= data.current.enemy.length) {
           clearInterval(interval);
         }
-      }, 3000);
+      }, 1000);
     });
     eventBus.on(eventBus.PLAY_REBONE, (i) => {
       this.show('player', i);
+    });
+    eventBus.on([eventBus.GAME_OVER, eventBus.GAME_NEXT], () => {
+      clearInterval(this.interval);
     });
   }
 
