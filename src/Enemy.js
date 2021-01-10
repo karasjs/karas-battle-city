@@ -389,7 +389,7 @@ class Enemy extends karas.Component {
                   data.num++;
                   data.num %= data.total;
                   eventBus.emit(eventBus.GAME_NEXT);
-                }, 1000);
+                }, 2000);
               }
             }
           }
