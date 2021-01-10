@@ -19,7 +19,7 @@ const MOVE_PX = {
   4: 1,
   5: 1,
 };
-const ENEMY_FIRE_COUNT = 100;
+const ENEMY_FIRE_COUNT = 50;
 
 function getBgP(type, direction, red, life) {
   let p = '-136 -68';

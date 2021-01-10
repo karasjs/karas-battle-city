@@ -195,6 +195,7 @@
   eventBus.HIT_US_BY_US = 'HIT_US_BY_US';
   eventBus.ADD_ENEMY = 'ADD_ENEMY';
   eventBus.ENEMY_FIRE = 'ENEMY_FIRE';
+  eventBus.SHOOT = 'SHOOT';
   eventBus.PLAY_REBONE = 'PLAY_REBONE';
   eventBus.BOOM = 'BOOM';
 
@@ -838,7 +839,7 @@
             if (count >= data.current.enemy.length) {
               clearInterval(interval);
             }
-          }, 3000);
+          }, 311000);
         });
         eventBus.on(eventBus.PLAY_REBONE, function (i) {
           _this2.show('player', i);
@@ -1555,7 +1556,7 @@
     4: 1,
     5: 1
   };
-  var ENEMY_FIRE_COUNT = 100;
+  var ENEMY_FIRE_COUNT = 50;
 
   function getBgP(type, direction, red, life) {
     var p = '-136 -68';
@@ -2089,7 +2090,7 @@
     }
   }
 
-  function checkHit(position, direction, dx, dy, list) {
+  function checkHit(position, direction, dx, dy, list, _double) {
     var _position2 = _slicedToArray(position, 2),
         x = _position2[0],
         y = _position2[1];
@@ -2110,8 +2111,8 @@
 
       var x1 = x0 * 16;
       var y1 = y0 * 16;
-      var x2 = x1 + 16;
-      var y2 = y1 + 16;
+      var x2 = x1 + 16 * (_double ? 2 : 1);
+      var y2 = y1 + 16 * (_double ? 2 : 1);
 
       if (direction === 0) {
         if (y - 4 <= y2 && y + 4 >= y1 && x + 20 >= x1 && x + 12 <= x2) {
@@ -2122,6 +2123,8 @@
           res.push([x0, y0]);
         }
       } else if (direction === 2) {
+        if (window.ttt) console.log(x, y, x1, y1, x2, y2, y + 36 >= y1, y + 28 <= y2, x + 20 >= x1, x + 12 <= x2);
+
         if (y + 36 >= y1 && y + 28 <= y2 && x + 20 >= x1 && x + 12 <= x2) {
           res.push([x0, y0]);
         }
@@ -2357,7 +2360,7 @@
                 emitHit(node, id, direction, d.x, d.y, eventBus.HIT_US, us);
               }
 
-              var home = checkHit(position, direction, d.x, d.y, data.current.home);
+              var home = checkHit(position, direction, d.x, d.y, data.current.home, true);
 
               if (home) {
                 emitHit(node, id, direction, d.x, d.y, eventBus.HIT_HOME, home);
@@ -2389,18 +2392,19 @@
         var now = Date.now();
 
         if (length) {
-          var last = target[length - 1]; // 200ms限制
+          var last = target[length - 1]; // 300ms限制
 
-          if (now - last.time < 200) {
+          if (now - last.time < 300) {
             return;
-          } // 3发限制
+          } // 2发限制
 
 
-          if (length >= 3) {
+          if (length >= 2) {
             return;
           }
-        } // 每个子弹相对于tank当时位置+方向生成唯一id
+        }
 
+        eventBus.emit(eventBus.SHOOT); // 每个子弹相对于tank当时位置+方向生成唯一id
 
         var id = uuid++;
         target.push({
@@ -2484,7 +2488,7 @@
               emitHit(node, id, direction, d.x, d.y, eventBus.HIT_US_BY_US, us);
             }
 
-            var home = checkHit(position, direction, d.x, d.y, data.current.home);
+            var home = checkHit(position, direction, d.x, d.y, data.current.home, true);
 
             if (home) {
               emitHit(node, id, direction, d.x, d.y, eventBus.HIT_HOME, home);
@@ -2794,41 +2798,94 @@
         var _this = this;
 
         this.mainBGM = new Howl({
-          src: '../sound/start.mp3',
+          src: 'sound/start.mp3',
           format: 'mp3',
           loop: false,
           preload: true,
           volume: 0.5
         });
         this.hitBrick = new Howl({
-          src: '../sound/hit_brick.wav',
-          format: 'wav',
+          src: 'sound/hit_brick.mp3',
+          format: 'mp3',
           loop: false,
           preload: true,
           volume: 0.5
         });
         this.hitIron = new Howl({
-          src: '../sound/hit_iron.wav',
-          format: 'wav',
+          src: 'sound/hit_iron.mp3',
+          format: 'mp3',
           loop: false,
           preload: true,
           volume: 0.5
         });
         this.hitTank = new Howl({
-          src: '../sound/hit_tank.wav',
-          format: 'wav',
+          src: 'sound/boom1.mp3',
+          format: 'mp3',
           loop: false,
           preload: true,
           volume: 0.5
         });
         this.hitHome = new Howl({
-          src: '../sound/hit_home.wav',
-          format: 'wav',
+          src: 'sound/boom2.mp3',
+          format: 'mp3',
           loop: false,
           preload: true,
           volume: 0.5
         });
-        eventBus.on(eventBus.BEFORE_GAME, function () {
+        this.shoot0 = new Howl({
+          src: 'sound/shoot0.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.shoot1 = new Howl({
+          src: 'sound/shoot1.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.shoot2 = new Howl({
+          src: 'sound/shoot2.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        this.shoot3 = new Howl({
+          src: 'sound/shoot3.mp3',
+          format: 'mp3',
+          loop: false,
+          preload: true,
+          volume: 0.5
+        });
+        eventBus.on(eventBus.SHOOT, function () {
+          _this.shoot0.play();
+        });
+        eventBus.on(eventBus.ENEMY_FIRE, function (i) {
+          switch (data.current.enemy[i][2]) {
+            case 0:
+              _this.shoot2.play();
+
+              break;
+
+            case 1:
+              _this.shoot1.play();
+
+              break;
+
+            case 2:
+              _this.shoot2.play();
+
+              break;
+
+            default:
+              _this.shoot3.play();
+
+          }
+        });
+        eventBus.on(eventBus.WILL_GAME, function () {
           _this.mainBGM.play();
         });
         eventBus.on(eventBus.HIT_BRICK, function () {
@@ -2847,10 +2904,10 @@
             _this.hitIron.play();
           }
         });
-        eventBus.on(eventBus.HIT_US, function () {
-          _this.hitHome.play();
+        eventBus.on(eventBus.BOOM, function () {
+          _this.hitTank.play();
         });
-        eventBus.on(eventBus.GAME_OVER, function () {
+        eventBus.on(eventBus.HIT_HOME, function () {
           _this.hitHome.play();
         });
       }

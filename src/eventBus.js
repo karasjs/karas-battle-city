@@ -25,6 +25,7 @@ eventBus.HIT_US_BY_US = 'HIT_US_BY_US';
 
 eventBus.ADD_ENEMY = 'ADD_ENEMY';
 eventBus.ENEMY_FIRE = 'ENEMY_FIRE';
+eventBus.SHOOT = 'SHOOT';
 
 eventBus.PLAY_REBONE = 'PLAY_REBONE';
 

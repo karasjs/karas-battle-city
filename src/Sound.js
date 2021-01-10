@@ -1,4 +1,5 @@
 import eventBus from './eventBus';
+import data from './data';
 
 class AudioController {
   constructor() {
@@ -12,41 +13,87 @@ class AudioController {
   }
   init () {
     this.mainBGM = new Howl({
-      src: '../sound/start.mp3',
+      src: 'sound/start.mp3',
       format: 'mp3',
       loop: false,
       preload: true,
       volume: 0.5,
     });
     this.hitBrick = new Howl({
-      src: '../sound/hit_brick.wav',
-      format: 'wav',
+      src: 'sound/hit_brick.mp3',
+      format: 'mp3',
       loop: false,
       preload: true,
       volume: 0.5,
     });
     this.hitIron = new Howl({
-      src: '../sound/hit_iron.wav',
-      format: 'wav',
+      src: 'sound/hit_iron.mp3',
+      format: 'mp3',
       loop: false,
       preload: true,
       volume: 0.5,
     });
     this.hitTank = new Howl({
-      src: '../sound/hit_tank.wav',
-      format: 'wav',
+      src: 'sound/boom1.mp3',
+      format: 'mp3',
       loop: false,
       preload: true,
       volume: 0.5,
     });
     this.hitHome = new Howl({
-      src: '../sound/hit_home.wav',
-      format: 'wav',
+      src: 'sound/boom2.mp3',
+      format: 'mp3',
       loop: false,
       preload: true,
       volume: 0.5,
     });
-    eventBus.on(eventBus.BEFORE_GAME, () => {
+    this.shoot0 = new Howl({
+      src: 'sound/shoot0.mp3',
+      format: 'mp3',
+      loop: false,
+      preload: true,
+      volume: 0.5,
+    });
+    this.shoot1 = new Howl({
+      src: 'sound/shoot1.mp3',
+      format: 'mp3',
+      loop: false,
+      preload: true,
+      volume: 0.5,
+    });
+    this.shoot2 = new Howl({
+      src: 'sound/shoot2.mp3',
+      format: 'mp3',
+      loop: false,
+      preload: true,
+      volume: 0.5,
+    });
+    this.shoot3 = new Howl({
+      src: 'sound/shoot3.mp3',
+      format: 'mp3',
+      loop: false,
+      preload: true,
+      volume: 0.5,
+    });
+    eventBus.on(eventBus.SHOOT, () => {
+      this.shoot0.play();
+    });
+    eventBus.on(eventBus.ENEMY_FIRE, (i) => {
+      switch(data.current.enemy[i][2]) {
+        case 0:
+          this.shoot2.play();
+          break;
+        case 1:
+          this.shoot1.play();
+          break;
+        case 2:
+          this.shoot2.play();
+          break;
+        default:
+          this.shoot3.play();
+      }
+    });
+    eventBus.on(eventBus.WILL_GAME, () => {
       this.mainBGM.play();
     });
     eventBus.on(eventBus.HIT_BRICK, () => {
@@ -65,10 +112,10 @@ class AudioController {
         this.hitIron.play();
       }
     });
-    eventBus.on(eventBus.HIT_US, () => {
-      this.hitHome.play();
+    eventBus.on(eventBus.BOOM, () => {
+      this.hitTank.play();
     });
-    eventBus.on(eventBus.GAME_OVER, () => {
+    eventBus.on(eventBus.HIT_HOME, () => {
       this.hitHome.play();
     });
   }
