@@ -65,12 +65,31 @@ class Brick extends karas.Component {
         });
         if(list.length) {
           this.timeout = setTimeout(() => {
+            let a;
             list.forEach(o => {
-              let { item, target } = o;
-              item[3] = 0;
-              target.updateStyle({
-                display: item[2] ? 'none' : 'block',
-                backgroundPosition: '-612px -170px',
+              let { target } = o;
+              a = target.animate([
+                {},
+                {
+                  backgroundPosition: '-612px -170px',
+                },
+              ], {
+                duration: 200,
+                iterations: 16,
+                easing: 'steps(1)',
+                direction: 'alternate',
+              });
+            });
+            a.on('finish', () => {
+              list.forEach(o => {
+                let { item, target } = o;
+                item[2] = 0;
+                item[3] = 0;
+                target.clearAnimate();
+                target.updateStyle({
+                  display: item[2] ? 'none' : 'block',
+                  backgroundPosition: '-612px -170px',
+                });
               });
             });
           }, 10000);

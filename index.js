@@ -169,7 +169,7 @@
       "iron": [[30, 15], [29, 15], [6, 15], [5, 15], [17, 7], [18, 7], [18, 8], [17, 8]],
       "home": [[17, 26]],
       "player": [[13, 26, 2, 1], [21, 26, 2, 1]],
-      "enemy": [[5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 3, 0], [17, 2, 4, 0], [29, 2, 5, 0]],
+      "enemy": [[5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 3, 0], [17, 2, 4, 0], [29, 2, 5, 0], [5, 2, 0, 0], [17, 2, 1, 0], [29, 2, 2, 0], [5, 2, 3, 0], [17, 2, 4, 0], [29, 2, 5, 0]],
       "box": [5, 2, 31, 28]
     },
     current: null
@@ -711,13 +711,29 @@
 
             if (list.length) {
               _this2.timeout = setTimeout(function () {
+                var a;
                 list.forEach(function (o) {
-                  var item = o.item,
-                      target = o.target;
-                  item[3] = 0;
-                  target.updateStyle({
-                    display: item[2] ? 'none' : 'block',
+                  var target = o.target;
+                  a = target.animate([{}, {
                     backgroundPosition: '-612px -170px'
+                  }], {
+                    duration: 200,
+                    iterations: 16,
+                    easing: 'steps(1)',
+                    direction: 'alternate'
+                  });
+                });
+                a.on('finish', function () {
+                  list.forEach(function (o) {
+                    var item = o.item,
+                        target = o.target;
+                    item[2] = 0;
+                    item[3] = 0;
+                    target.clearAnimate();
+                    target.updateStyle({
+                      display: item[2] ? 'none' : 'block',
+                      backgroundPosition: '-612px -170px'
+                    });
                   });
                 });
               }, 10000);
@@ -3016,7 +3032,6 @@
           var y = Math.floor(Math.random() * (data.current.box[3] - data.current.box[1]) * 8) + data.current.box[1] * 8;
           var hash = _this2.state.hash;
           var type = list[i];
-          type = 'wall';
           var o = hash[type] = {
             x: x,
             y: y
