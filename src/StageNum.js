@@ -1,4 +1,5 @@
 import karas from 'karas';
+import data from './data';
 import eventBus from './eventBus';
 
 class StageNum extends karas.Component {
@@ -9,10 +10,20 @@ class StageNum extends karas.Component {
     };
   }
 
+  componentDidMount() {
+    eventBus.on([eventBus.BEFORE_GAME, eventBus.GAME_NEXT], () => {
+      data.current = karas.util.clone(data[data.num % data.total]);
+      if (eventBus.playerNum === 1) {
+        data.current.player.splice(1);
+      }
+      this.show(data.num);
+    });
+  }
+
   show(num) {
     // 设置数字
     this.setState({
-      num,
+      num: num + 1,
     }, () => {
       // 上下遮盖屏幕动画
       this.ref.top.animate([

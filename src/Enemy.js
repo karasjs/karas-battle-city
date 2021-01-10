@@ -210,6 +210,11 @@ class Enemy extends karas.Component {
 
   componentDidMount() {
     // 开始游戏
+    eventBus.on(eventBus.WILL_GAME, () => {
+      this.setState({
+        list: [],
+      });
+    });
     eventBus.on(eventBus.GAMEING, () => {
       this.setState({
         show: true,
@@ -236,7 +241,7 @@ class Enemy extends karas.Component {
             // 积累一定随机时间后开火
             let fire = --item[8];
             if(fire <= 0) {
-              item[8] = ENEMY_FIRE_COUNT + Math.floor(Math.random() * ENEMY_FIRE_COUNT);
+              item[8] = 10 + Math.floor(Math.random() * ENEMY_FIRE_COUNT);
               eventBus.emit(eventBus.ENEMY_FIRE, i, [px, py], direction);
             }
             // 检测移动，积累count到一定后没有一定随机更换方向
@@ -341,11 +346,11 @@ class Enemy extends karas.Component {
         });
       });
     });
-    eventBus.on(eventBus.HIT_ENEMY, (id, x, y, data) => {
+    eventBus.on(eventBus.HIT_ENEMY, (id, x, y, d) => {
       for(let list = this.state.list, i = 0, len = list.length; i < len; i++) {
         let item = list[i];
-        for(let j = 0, len2 = data.length; j < len2; j++) {
-          if(item === data[j]) {
+        for(let j = 0, len2 = d.length; j < len2; j++) {
+          if(item === d[j]) {
             let tank = this.ref['tank' + i];
             // 红先消失
             if(item[9]) {
@@ -373,6 +378,19 @@ class Enemy extends karas.Component {
                 list,
               });
               eventBus.emit(eventBus.BOOM, item[5] + 16, item[6] + 16);
+              let n = 0;
+              data.current.enemy.forEach(item => {
+                if(item[3] !== 2) {
+                  n++;
+                }
+              });
+              if(!n) {
+                setTimeout(() => {
+                  data.num++;
+                  data.num %= data.total;
+                  eventBus.emit(eventBus.GAME_NEXT);
+                }, 1000);
+              }
             }
           }
         }
@@ -398,7 +416,7 @@ class Enemy extends karas.Component {
         });
       }
     })
-    eventBus.on(eventBus.BEFORE_MENU, () => {
+    eventBus.on([eventBus.BEFORE_MENU, eventBus.WILL_GAME], () => {
       karas.animate.frame.offFrame(this.cb);
     });
   }

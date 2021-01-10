@@ -180,8 +180,10 @@
       "grass": [[6, 13], [5, 13], [5, 12], [6, 12], [5, 11], [6, 11], [5, 10], [6, 10], [7, 13], [8, 13], [8, 12], [7, 12], [18, 14], [17, 14], [17, 15], [18, 15], [16, 14], [15, 14], [15, 15], [16, 15], [14, 14], [13, 15], [14, 15], [13, 14], [13, 16], [14, 16], [14, 17], [13, 17], [25, 12], [26, 12], [26, 13], [25, 13], [25, 14], [26, 14], [26, 15], [25, 15]],
       "enemy": [[5, 2, 0], [17, 2, 0], [29, 2, 1], [5, 2, 2], [17, 2, 3], [29, 3, 4], [5, 2, 5], [17, 2, 2], [29, 2, 1], [5, 2, 1], [17, 2, 2], [29, 2, 0], [5, 2, 3], [17, 2, 1], [29, 2, 2], [5, 2, 3], [17, 2, 3], [29, 2, 4], [5, 2, 4], [17, 2, 5], [29, 2, 5]],
       "player": [[13, 26, 2, 1], [21, 26, 2, 1]],
-      "box": [5, 2, 30, 27]
+      "box": [5, 2, 31, 28]
     },
+    num: 0,
+    total: 2,
     current: null
   };
 
@@ -355,16 +357,31 @@
     }
 
     _createClass(StageNum, [{
+      key: "componentDidMount",
+      value: function componentDidMount() {
+        var _this2 = this;
+
+        eventBus.on([eventBus.BEFORE_GAME, eventBus.GAME_NEXT], function () {
+          data.current = karas$1.util.clone(data[data.num % data.total]);
+
+          if (eventBus.playerNum === 1) {
+            data.current.player.splice(1);
+          }
+
+          _this2.show(data.num);
+        });
+      }
+    }, {
       key: "show",
       value: function show(num) {
-        var _this2 = this;
+        var _this3 = this;
 
         // 设置数字
         this.setState({
-          num: num
+          num: num + 1
         }, function () {
           // 上下遮盖屏幕动画
-          _this2.ref.top.animate([{
+          _this3.ref.top.animate([{
             translateY: '-100%'
           }, {
             translateY: 0
@@ -373,7 +390,7 @@
             fill: 'forwards'
           });
 
-          var a = _this2.ref.bottom.animate([{
+          var a = _this3.ref.bottom.animate([{
             translateY: '100%'
           }, {
             translateY: 0
@@ -384,7 +401,7 @@
 
 
           a.on('finish', function () {
-            _this2.ref.text.updateStyle({
+            _this3.ref.text.updateStyle({
               visibility: 'visible'
             }, function () {
               eventBus.gameState = eventBus.WILL_GAME;
@@ -392,12 +409,12 @@
 
               setTimeout(function () {
                 // 隐藏主tank菜单和局数，显示游戏主场景
-                _this2.ref.text.updateStyle({
+                _this3.ref.text.updateStyle({
                   visibility: 'hidden'
                 }); // 打开遮盖
 
 
-                _this2.ref.top.animate([{
+                _this3.ref.top.animate([{
                   translateY: 0
                 }, {
                   translateY: '-100%'
@@ -406,7 +423,7 @@
                   fill: 'forwards'
                 });
 
-                var a = _this2.ref.bottom.animate([{
+                var a = _this3.ref.bottom.animate([{
                   translateY: 0
                 }, {
                   translateY: '100%'
@@ -931,6 +948,7 @@
           _this2.show('player', i);
         });
         eventBus.on([eventBus.GAME_OVER, eventBus.GAME_NEXT], function () {
+          eventBus.activeEnemyNum = 0;
           clearInterval(_this2.interval);
         });
       }
@@ -1950,6 +1968,11 @@
         var _this2 = this;
 
         // 开始游戏
+        eventBus.on(eventBus.WILL_GAME, function () {
+          _this2.setState({
+            list: []
+          });
+        });
         eventBus.on(eventBus.GAMEING, function () {
           _this2.setState({
             show: true
@@ -1990,7 +2013,7 @@
                 var fire = --item[8];
 
                 if (fire <= 0) {
-                  item[8] = ENEMY_FIRE_COUNT + Math.floor(Math.random() * ENEMY_FIRE_COUNT);
+                  item[8] = 10 + Math.floor(Math.random() * ENEMY_FIRE_COUNT);
                   eventBus.emit(eventBus.ENEMY_FIRE, i, [px, py], direction);
                 } // 检测移动，积累count到一定后没有一定随机更换方向
 
@@ -2099,12 +2122,12 @@
             });
           });
         });
-        eventBus.on(eventBus.HIT_ENEMY, function (id, x, y, data) {
+        eventBus.on(eventBus.HIT_ENEMY, function (id, x, y, d) {
           for (var list = _this2.state.list, i = 0, len = list.length; i < len; i++) {
             var item = list[i];
 
-            for (var j = 0, len2 = data.length; j < len2; j++) {
-              if (item === data[j]) {
+            for (var j = 0, len2 = d.length; j < len2; j++) {
+              if (item === d[j]) {
                 var tank = _this2.ref['tank' + i]; // 红先消失
 
                 if (item[9]) {
@@ -2125,13 +2148,29 @@
                     });
                   } // 其它挂
                   else {
-                      item[3] = 2;
+                      (function () {
+                        item[3] = 2;
 
-                      _this2.setState({
-                        list: list
-                      });
+                        _this2.setState({
+                          list: list
+                        });
 
-                      eventBus.emit(eventBus.BOOM, item[5] + 16, item[6] + 16);
+                        eventBus.emit(eventBus.BOOM, item[5] + 16, item[6] + 16);
+                        var n = 0;
+                        data.current.enemy.forEach(function (item) {
+                          if (item[3] !== 2) {
+                            n++;
+                          }
+                        });
+
+                        if (!n) {
+                          setTimeout(function () {
+                            data.num++;
+                            data.num %= data.total;
+                            eventBus.emit(eventBus.GAME_NEXT);
+                          }, 1000);
+                        }
+                      })();
                     }
               }
             }
@@ -2159,7 +2198,7 @@
             });
           }
         });
-        eventBus.on(eventBus.BEFORE_MENU, function () {
+        eventBus.on([eventBus.BEFORE_MENU, eventBus.WILL_GAME], function () {
           karas$1.animate.frame.offFrame(_this2.cb);
         });
       }
@@ -3255,6 +3294,74 @@
     return Status;
   }(karas$1.Component);
 
+  var Grass = /*#__PURE__*/function (_karas$Component) {
+    _inherits(Grass, _karas$Component);
+
+    var _super = _createSuper(Grass);
+
+    function Grass(props) {
+      var _this;
+
+      _classCallCheck(this, Grass);
+
+      _this = _super.call(this, props);
+      _this.state = {
+        show: false,
+        list: []
+      };
+      return _this;
+    }
+
+    _createClass(Grass, [{
+      key: "componentDidMount",
+      value: function componentDidMount() {
+        var _this2 = this;
+
+        // 开始游戏
+        eventBus.on(eventBus.WILL_GAME, function () {
+          _this2.setState({
+            show: true,
+            list: data.current.grass
+          });
+        });
+      }
+    }, {
+      key: "render",
+      value: function render() {
+        return karas$1.createElement("div", {
+          style: {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: '100%',
+            height: '100%',
+            visibility: this.state.show ? 'visible' : 'hidden'
+          }
+        }, this.state.list.map(function (item) {
+          var _item = _slicedToArray(item, 2),
+              x = _item[0],
+              y = _item[1];
+
+          var left = x * 16;
+          var top = y * 16;
+          return karas$1.createElement("span", {
+            ref: x + ',' + y,
+            style: {
+              position: 'absolute',
+              left: left,
+              top: top,
+              width: 16,
+              height: 16,
+              background: 'url(tank.png) no-repeat -136 -238'
+            }
+          });
+        }));
+      }
+    }]);
+
+    return Grass;
+  }(karas$1.Component);
+
   var AudioController = /*#__PURE__*/function () {
     function AudioController() {
       _classCallCheck(this, AudioController);
@@ -3476,7 +3583,7 @@
 
   new AudioController();
 
-  var root = karas.render(karas.createElement("svg", {
+  var root = karas.render(karas.createElement("canvas", {
     width: 600,
     height: 600,
     cache: "1"
@@ -3490,6 +3597,8 @@
     ref: "player"
   }), karas.createElement(Enemy, {
     ref: "enemy"
+  }), karas.createElement(Grass, {
+    ref: "grass"
   }), karas.createElement(Fade, {
     ref: "fade"
   }), karas.createElement(Item, {
@@ -3525,12 +3634,6 @@
         else if (e.keyCode === 74) {
             eventBus.gameState = eventBus.BEFORE_GAME;
             eventBus.emit(eventBus.BEFORE_GAME);
-            root.ref.stageNum.show(1);
-            data.current = karas.util.clone(data[0]);
-
-            if (eventBus.playerNum === 1) {
-              data.current.player.splice(1);
-            }
           }
       } // 游戏控制
       else if (eventBus.gameState === eventBus.GAMEING) {
@@ -3629,8 +3732,7 @@
       root.ref.menu.fastShow();
     } else if (eventBus.gameState === eventBus.MENUING) {
       eventBus.gameState = eventBus.BEFORE_GAME;
-      root.ref.stageNum.show(1);
-      data.current = karas.util.clone(data[0]);
+      eventBus.emit(eventBus.BEFORE_GAME);
     } else if (eventBus.gameState === eventBus.GAMEING) {
       var position = root.ref.player.getPosition(0);
       var direction = root.ref.player.getDirection(0);

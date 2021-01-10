@@ -13,17 +13,17 @@ import Boom from './Boom';
 import Item from './Item';
 import Status from './Status';
 import eventBus from './eventBus';
-import data from './data';
-import sound from './Sound';
-// sound.mute();
+import Grass from './Grass';
+import Sound from './Sound';
 
 let root = karas.render(
-  <svg width={600} height={600} cache="1">
+  <canvas width={600} height={600} cache="1">
     <Box ref="box" />
     <Brick ref="brick" />
     <Iron ref="iron" />
     <Player ref="player" />
     <Enemy ref="enemy" />
+    <Grass ref="grass" />
     <Fade ref="fade" />
     <Item ref="item"/>
     <Bullet ref="bullet" />
@@ -33,7 +33,7 @@ let root = karas.render(
     <Menu ref="menu" />
     <StageNum ref="stageNum" />
     <GameOver ref="gameOver" />
-  </svg>,
+  </canvas>,
   '#canvas'
 );
 
@@ -55,11 +55,6 @@ document.addEventListener('keydown', function (e) {
     else if (e.keyCode === 74) {
       eventBus.gameState = eventBus.BEFORE_GAME;
       eventBus.emit(eventBus.BEFORE_GAME);
-      root.ref.stageNum.show(1);
-      data.current = karas.util.clone(data[0]);
-      if (eventBus.playerNum === 1) {
-        data.current.player.splice(1);
-      }
     }
   }
   // 游戏控制
@@ -176,8 +171,7 @@ j.addEventListener('touchstart', function () {
   }
   else if (eventBus.gameState === eventBus.MENUING) {
     eventBus.gameState = eventBus.BEFORE_GAME;
-    root.ref.stageNum.show(1);
-    data.current = karas.util.clone(data[0]);
+    eventBus.emit(eventBus.BEFORE_GAME);
   }
   else if (eventBus.gameState === eventBus.GAMEING) {
     let position = root.ref.player.getPosition(0);

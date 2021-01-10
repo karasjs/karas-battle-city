@@ -50,6 +50,7 @@ class Fade extends karas.Component {
       this.show('player', i);
     });
     eventBus.on([eventBus.GAME_OVER, eventBus.GAME_NEXT], () => {
+      eventBus.activeEnemyNum = 0;
       clearInterval(this.interval);
     });
   }
