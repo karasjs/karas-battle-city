@@ -135,7 +135,8 @@ let s = document.querySelector('#s');
 let d = document.querySelector('#d');
 let j = document.querySelector('#j');
 
-w.addEventListener('touchstart', function () {
+w.addEventListener('touchstart', function (e) {
+  e.preventDefault();
   if (eventBus.gameState === eventBus.MENUING) {
     root.ref.menu.altPlayerNum();
   }
@@ -144,13 +145,15 @@ w.addEventListener('touchstart', function () {
   }
 });
 
-a.addEventListener('touchstart', function () {
+a.addEventListener('touchstart', function (e) {
+  e.preventDefault();
   if (eventBus.gameState === eventBus.GAMEING) {
     root.ref.player.move(0, 3);
   }
 });
 
-s.addEventListener('touchstart', function () {
+s.addEventListener('touchstart', function (e) {
+  e.preventDefault();
   if (eventBus.gameState === eventBus.MENUING) {
     root.ref.menu.altPlayerNum();
   }
@@ -159,13 +162,15 @@ s.addEventListener('touchstart', function () {
   }
 });
 
-d.addEventListener('touchstart', function () {
+d.addEventListener('touchstart', function (e) {
+  e.preventDefault();
   if (eventBus.gameState === eventBus.GAMEING) {
     root.ref.player.move(0, 1);
   }
 });
 
-j.addEventListener('touchstart', function () {
+j.addEventListener('touchstart', function (e) {
+  e.preventDefault();
   if (eventBus.gameState === eventBus.BEFORE_MENU) {
     root.ref.menu.fastShow();
   }

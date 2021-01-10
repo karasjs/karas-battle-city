@@ -942,7 +942,7 @@
             if (count >= data.current.enemy.length) {
               clearInterval(interval);
             }
-          }, 4000);
+          }, 1000);
         });
         eventBus.on(eventBus.PLAY_REBONE, function (i) {
           _this2.show('player', i);
@@ -3227,9 +3227,25 @@
             life: _this2.state.life + 1
           });
         });
-        eventBus.on(eventBus.HIT_US, function () {
-          _this2.setState({
-            life: _this2.state.life - 1
+        eventBus.on(eventBus.HIT_US, function (id, x, y, us) {
+          us.forEach(function (item) {
+            var i;
+
+            if (item === _this2.state.list[0]) {
+              i = 0;
+            } else if (item === _this2.state.list[1]) {
+              i = 1;
+            }
+
+            if (i === 0) {
+              if (item[3] === 1) {
+                return;
+              }
+
+              _this2.setState({
+                life: _this2.state.life - 1
+              });
+            }
           });
         });
         eventBus.on(eventBus.ADDED_ENEMY, function () {
@@ -3702,31 +3718,41 @@
   var s = document.querySelector('#s');
   var d = document.querySelector('#d');
   var j = document.querySelector('#j');
-  w.addEventListener('touchstart', function () {
+  w.addEventListener('touchstart', function (e) {
+    e.preventDefault();
+
     if (eventBus.gameState === eventBus.MENUING) {
       root.ref.menu.altPlayerNum();
     } else if (eventBus.gameState === eventBus.GAMEING) {
       root.ref.player.move(0, 0);
     }
   });
-  a.addEventListener('touchstart', function () {
+  a.addEventListener('touchstart', function (e) {
+    e.preventDefault();
+
     if (eventBus.gameState === eventBus.GAMEING) {
       root.ref.player.move(0, 3);
     }
   });
-  s.addEventListener('touchstart', function () {
+  s.addEventListener('touchstart', function (e) {
+    e.preventDefault();
+
     if (eventBus.gameState === eventBus.MENUING) {
       root.ref.menu.altPlayerNum();
     } else if (eventBus.gameState === eventBus.GAMEING) {
       root.ref.player.move(0, 2);
     }
   });
-  d.addEventListener('touchstart', function () {
+  d.addEventListener('touchstart', function (e) {
+    e.preventDefault();
+
     if (eventBus.gameState === eventBus.GAMEING) {
       root.ref.player.move(0, 1);
     }
   });
-  j.addEventListener('touchstart', function () {
+  j.addEventListener('touchstart', function (e) {
+    e.preventDefault();
+
     if (eventBus.gameState === eventBus.BEFORE_MENU) {
       root.ref.menu.fastShow();
     } else if (eventBus.gameState === eventBus.MENUING) {

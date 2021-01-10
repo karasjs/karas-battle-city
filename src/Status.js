@@ -25,9 +25,23 @@ class Status extends karas.Component {
         life: this.state.life + 1,
       });
     });
-    eventBus.on(eventBus.HIT_US, () => {
-      this.setState({
-        life: this.state.life - 1,
+    eventBus.on(eventBus.HIT_US, (id, x, y, us) => {
+      us.forEach(item => {
+        let i;
+        if(item === this.state.list[0]) {
+          i = 0;
+        }
+        else if(item === this.state.list[1]) {
+          i = 1;
+        }
+        if(i === 0) {
+          if(item[3] === 1) {
+            return;
+          }
+          this.setState({
+            life: this.state.life - 1,
+          });
+        }
       });
     });
     eventBus.on(eventBus.ADDED_ENEMY, () => {
