@@ -146,7 +146,7 @@ class AudioController {
     eventBus.on(eventBus.HIT_BOX, () => {
       this.hitBrick.play();
     });
-    eventBus.on(eventBus.HIT_IRON, () => {
+    eventBus.on([eventBus.HIT_IRON, eventBus.HIT_ENEMY], () => {
       this.hitIron.play();
     });
     eventBus.on(eventBus.BOOM, () => {

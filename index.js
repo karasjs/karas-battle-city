@@ -1897,17 +1897,7 @@
       backgroundPosition: p
     }, {
       backgroundPosition: p2.join(' ')
-    }]; // let p = getBgP(type, direction, 0, life).split(' ');
-    // p = parseInt(p[0]);
-    // let p2 = p - 34;
-    // return [
-    //   {
-    //     backgroundPositionX: p,
-    //   },
-    //   {
-    //     backgroundPositionX: p2,
-    //   },
-    // ];
+    }];
   }
 
   var Enemy = /*#__PURE__*/function (_karas$Component) {
@@ -2193,7 +2183,7 @@
             item[7] = 0; // 计时初始化
 
             item[8] = Math.floor(Math.random() * ENEMY_FIRE_COUNT);
-            item[9] = i % 5 === 0 ? 1 : 0; // 每5出红
+            item[9] = i && i % 5 === 0 ? 1 : 0; // 每5出红
 
             item[10] = item[2] > 3 ? item[2] - 3 : 0; // 3厚tank，4,5加厚tank
           }
@@ -3298,7 +3288,7 @@
         eventBus.on(eventBus.HIT_BOX, function () {
           _this.hitBrick.play();
         });
-        eventBus.on(eventBus.HIT_IRON, function () {
+        eventBus.on([eventBus.HIT_IRON, eventBus.HIT_ENEMY], function () {
           _this.hitIron.play();
         });
         eventBus.on(eventBus.BOOM, function () {

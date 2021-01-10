@@ -197,17 +197,6 @@ function getFrame(type, direction, life) {
       backgroundPosition: p2.join(' '),
     },
   ];
-  // let p = getBgP(type, direction, 0, life).split(' ');
-  // p = parseInt(p[0]);
-  // let p2 = p - 34;
-  // return [
-  //   {
-  //     backgroundPositionX: p,
-  //   },
-  //   {
-  //     backgroundPositionX: p2,
-  //   },
-  // ];
 }
 
 class Enemy extends karas.Component {
@@ -443,7 +432,7 @@ class Enemy extends karas.Component {
             item[6] = py = ty * 16;
             item[7] = 0; // 计时初始化
             item[8] = Math.floor(Math.random() * ENEMY_FIRE_COUNT);
-            item[9] = i % 5 === 0 ? 1 : 0; // 每5出红
+            item[9] = i && i % 5 === 0 ? 1 : 0; // 每5出红
             item[10] = item[2] > 3 ? item[2] - 3 : 0; // 3厚tank，4,5加厚tank
           }
           let life = item[10];
