@@ -388,6 +388,26 @@ class Enemy extends karas.Component {
         }
       }
     });
+    eventBus.on(eventBus.GET, type => {
+      if(type === 'boom') {
+        let list = this.state.list;
+        list.forEach((item, i) => {
+          let state = item[3];
+          // 防止死tank
+          if(state < 2) {
+            item[9] = 0;
+            item[10] = 0;
+            item[3] = 2;
+            let tank = this.ref['tank' + i];
+            tank.clearAnimate();
+            this.setState({
+              list,
+            });
+            eventBus.emit(eventBus.BOOM, item[5] + 16, item[6] + 16);
+          }
+        });
+      }
+    })
     eventBus.on(eventBus.BEFORE_MENU, () => {
       karas.animate.frame.offFrame(this.cb);
     });

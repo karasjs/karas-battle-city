@@ -580,8 +580,6 @@
             fail: true
           });
         });
-        eventBus.on(eventBus.GET, function (type) {
-        });
       }
     }, {
       key: "render",
@@ -668,14 +666,66 @@
           for (var list = _this2.state.list, i = 0, len = list.length; i < len; i++) {
             var item = list[i];
 
-            if (!item[2] && hash.hasOwnProperty(item[0]) && hash[item[0]].indexOf(item[1]) > -1) {
-              item.push(true);
+            if (!item[2] && !item[3] && hash.hasOwnProperty(item[0]) && hash[item[0]].indexOf(item[1]) > -1) {
+              item[2] = 1;
 
               _this2.ref[item[0] + ',' + item[1]].updateStyle({
                 display: 'none'
               });
             }
           }
+        });
+        eventBus.on(eventBus.GET, function (type) {
+          if (type === 'wall') {
+            var home = data.current.home;
+            var len = home.length;
+            var list = [];
+
+            _this2.state.list.forEach(function (item) {
+              var _item = _slicedToArray(item, 2),
+                  x = _item[0],
+                  y = _item[1];
+
+              for (var i = 0; i < len; i++) {
+                var _home$i = _slicedToArray(home[i], 2),
+                    x1 = _home$i[0],
+                    y1 = _home$i[1];
+
+                var x2 = x1 + 1;
+                var y2 = y1 + 1;
+
+                if (Math.abs(x - x1) + Math.abs(y - y1) <= 2 || Math.abs(x - x1) + Math.abs(y - y2) <= 2 || Math.abs(x - x2) + Math.abs(y - y1) <= 2 || Math.abs(x - x2) + Math.abs(y - y2) <= 2) {
+                  item[3] = 1;
+                  var target = _this2.ref[x + ',' + y];
+                  target.updateStyle({
+                    display: 'block',
+                    backgroundPosition: '0 -204px'
+                  });
+                  list.push({
+                    item: item,
+                    target: target
+                  });
+                }
+              }
+            });
+
+            if (list.length) {
+              _this2.timeout = setTimeout(function () {
+                list.forEach(function (o) {
+                  var item = o.item,
+                      target = o.target;
+                  item[3] = 0;
+                  target.updateStyle({
+                    display: item[2] ? 'none' : 'block',
+                    backgroundPosition: '-612px -170px'
+                  });
+                });
+              }, 10000);
+            }
+          }
+        });
+        eventBus.on([eventBus.GAME_OVER, eventBus.GAME_NEXT], function () {
+          clearTimeout(_this2.timeout);
         });
       }
     }, {
@@ -691,9 +741,9 @@
             visibility: this.state.show ? 'visible' : 'hidden'
           }
         }, this.state.list.map(function (item) {
-          var _item = _slicedToArray(item, 2),
-              x = _item[0],
-              y = _item[1];
+          var _item2 = _slicedToArray(item, 2),
+              x = _item2[0],
+              y = _item2[1];
 
           var left = x * 16;
           var top = y * 16;
@@ -845,7 +895,7 @@
             if (count >= data.current.enemy.length) {
               clearInterval(interval);
             }
-          }, 3000);
+          }, 4000);
         });
         eventBus.on(eventBus.PLAY_REBONE, function (i) {
           _this2.show('player', i);
@@ -2055,6 +2105,28 @@
             }
           }
         });
+        eventBus.on(eventBus.GET, function (type) {
+          if (type === 'boom') {
+            var list = _this2.state.list;
+            list.forEach(function (item, i) {
+              var state = item[3]; // 防止死tank
+
+              if (state < 2) {
+                item[9] = 0;
+                item[10] = 0;
+                item[3] = 2;
+                var tank = _this2.ref['tank' + i];
+                tank.clearAnimate();
+
+                _this2.setState({
+                  list: list
+                });
+
+                eventBus.emit(eventBus.BOOM, item[5] + 16, item[6] + 16);
+              }
+            });
+          }
+        });
         eventBus.on(eventBus.BEFORE_MENU, function () {
           karas$1.animate.frame.offFrame(_this2.cb);
         });
@@ -2211,12 +2283,13 @@
     var res = [];
 
     for (var i = 0, len = list.length; i < len; i++) {
-      var _list$i = _slicedToArray(list[i], 3),
+      var _list$i = _slicedToArray(list[i], 4),
           x0 = _list$i[0],
           y0 = _list$i[1],
-          disappear = _list$i[2];
+          disappear = _list$i[2],
+          change = _list$i[3];
 
-      if (disappear) {
+      if (disappear && !change) {
         continue;
       }
 
@@ -2460,7 +2533,7 @@
               var iron = checkHit(position, direction, d.x, d.y, data.current.iron);
 
               if (iron) {
-                emitHit(node, id, direction, d.x, d.y, eventBus.HIT_IRON, brick);
+                emitHit(node, id, direction, d.x, d.y, eventBus.HIT_IRON, iron);
               }
 
               var us = checkHitUs(position, direction, d.x, d.y, -1, data.current.player);
@@ -2943,7 +3016,7 @@
           var y = Math.floor(Math.random() * (data.current.box[3] - data.current.box[1]) * 8) + data.current.box[1] * 8;
           var hash = _this2.state.hash;
           var type = list[i];
-          type = 'protect';
+          type = 'wall';
           var o = hash[type] = {
             x: x,
             y: y
@@ -3188,7 +3261,23 @@
         eventBus.on(eventBus.WILL_GAME, function () {
           _this.mainBGM.play();
         });
-        eventBus.on(eventBus.HIT_BRICK, function () {
+        eventBus.on(eventBus.HIT_BRICK, function (id, x, y, item) {
+          var brick = data.current.brick; // 先判断变铁的
+
+           for (var i = 0, len = brick.length; i < len; i++) {
+            for (var j = item.length - 1; j >= 0; j--) {
+              if (brick[i][3] && brick[i][0] === item[j][0] && brick[i][1] === item[j][1]) {
+                item.splice(j, 1);
+
+                _this.hitIron.play();
+              }
+            }
+          }
+
+          if (!item.length) {
+            return;
+          }
+
           _this.hitBrick.play();
         });
         eventBus.on(eventBus.HIT_BOX, function () {

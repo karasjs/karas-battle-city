@@ -126,7 +126,21 @@ class AudioController {
     eventBus.on(eventBus.WILL_GAME, () => {
       this.mainBGM.play();
     });
-    eventBus.on(eventBus.HIT_BRICK, () => {
+    eventBus.on(eventBus.HIT_BRICK, (id, x, y, item) => {
+      let brick = data.current.brick;
+      // 先判断变铁的
+      outer:
+      for(let i = 0, len = brick.length; i < len; i++) {
+        for(let j = item.length - 1; j >= 0; j--) {
+          if(brick[i][3] && brick[i][0] === item[j][0] && brick[i][1] === item[j][1]) {
+            item.splice(j, 1);
+            this.hitIron.play();
+          }
+        }
+      }
+      if(!item.length) {
+        return;
+      }
       this.hitBrick.play();
     });
     eventBus.on(eventBus.HIT_BOX, () => {

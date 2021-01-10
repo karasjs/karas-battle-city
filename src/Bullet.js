@@ -39,8 +39,8 @@ function checkHit(position, direction, dx, dy, list, double) {
   y += dy;
   let res = [];
   for(let i = 0, len = list.length; i < len; i++) {
-    let [x0, y0, disappear] = list[i];
-    if(disappear) {
+    let [x0, y0, disappear, change] = list[i];
+    if(disappear && !change) {
       continue;
     }
     let x1 = x0 * 16;
@@ -255,7 +255,7 @@ class Bullet extends karas.Component {
           }
           let iron = checkHit(position, direction, d.x, d.y, data.current.iron);
           if(iron) {
-            emitHit(node, id, direction, d.x, d.y, eventBus.HIT_IRON, brick);
+            emitHit(node, id, direction, d.x, d.y, eventBus.HIT_IRON, iron);
           }
           let us = checkHitUs(position, direction, d.x, d.y, -1, data.current.player);
           if(us) {

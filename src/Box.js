@@ -29,9 +29,6 @@ class Box extends karas.Component {
         fail: true,
       });
     });
-    eventBus.on(eventBus.GET, type => {
-      if(type === 'wall') {}
-    });
   }
 
   render() {

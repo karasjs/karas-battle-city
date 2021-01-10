@@ -27,13 +27,58 @@ class Brick extends karas.Component {
       });
       for(let list = this.state.list, i = 0, len = list.length; i < len; i++) {
         let item = list[i];
-        if(!item[2] && hash.hasOwnProperty(item[0]) && hash[item[0]].indexOf(item[1]) > -1) {
-          item.push(true);
+        if(!item[2] && !item[3] && hash.hasOwnProperty(item[0]) && hash[item[0]].indexOf(item[1]) > -1) {
+          item[2] = 1;
           this.ref[item[0] + ',' + item[1]].updateStyle({
             display: 'none',
           });
         }
       }
+    });
+    eventBus.on(eventBus.GET, type => {
+      if(type === 'wall') {
+        let home = data.current.home;
+        let len = home.length;
+        let list = [];
+        this.state.list.forEach(item => {
+          let [x, y] = item;
+          for(let i = 0; i < len; i++) {
+            let [x1, y1] = home[i];
+            let x2 = x1 + 1;
+            let y2 = y1 + 1;
+            if((Math.abs(x - x1) + Math.abs(y - y1)) <= 2
+              || (Math.abs(x - x1) + Math.abs(y - y2)) <= 2
+              || (Math.abs(x - x2) + Math.abs(y - y1)) <= 2
+              || (Math.abs(x - x2) + Math.abs(y - y2)) <= 2) {
+              item[3] = 1;
+              let target = this.ref[x + ',' + y];
+              target.updateStyle({
+                display: 'block',
+                backgroundPosition: '0 -204px',
+              });
+              list.push({
+                item,
+                target,
+              });
+            }
+          }
+        });
+        if(list.length) {
+          this.timeout = setTimeout(() => {
+            list.forEach(o => {
+              let { item, target } = o;
+              item[3] = 0;
+              target.updateStyle({
+                display: item[2] ? 'none' : 'block',
+                backgroundPosition: '-612px -170px',
+              });
+            });
+          }, 10000);
+        }
+      }
+    });
+    eventBus.on([eventBus.GAME_OVER, eventBus.GAME_NEXT], () => {
+      clearTimeout(this.timeout);
     });
   }
 
