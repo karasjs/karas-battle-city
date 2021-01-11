@@ -3617,41 +3617,97 @@
 
   new AudioController();
 
-  var root = karas.render(karas.createElement("canvas", {
-    width: 600,
-    height: 600,
-    cache: "1"
-  }, karas.createElement(Box, {
-    ref: "box"
-  }), karas.createElement(Brick, {
-    ref: "brick"
-  }), karas.createElement(Brick$1, {
-    ref: "iron"
-  }), karas.createElement(Player, {
-    ref: "player"
-  }), karas.createElement(Enemy, {
-    ref: "enemy"
-  }), karas.createElement(Grass, {
-    ref: "grass"
-  }), karas.createElement(Fade, {
-    ref: "fade"
-  }), karas.createElement(Item, {
-    ref: "item"
-  }), karas.createElement(Bullet, {
-    ref: "bullet"
-  }), karas.createElement(Boom, {
-    ref: "boom"
-  }), karas.createElement(Hit, {
-    ref: "hit"
-  }), karas.createElement(Status, {
-    ref: "status"
-  }), karas.createElement(Menu, {
-    ref: "menu"
-  }), karas.createElement(StageNum, {
-    ref: "stageNum"
-  }), karas.createElement(GameOver, {
-    ref: "gameOver"
-  })), '#canvas');
+  var type = location.hash;
+  console.log(type);
+  var root;
+
+  if (type === '#svg' || type === 'svg') {
+    root = karas.render(karas.createElement("svg", {
+      width: 600,
+      height: 600
+    }, karas.createElement(Box, {
+      ref: "box"
+    }), karas.createElement(Brick, {
+      ref: "brick"
+    }), karas.createElement(Brick$1, {
+      ref: "iron"
+    }), karas.createElement(Player, {
+      ref: "player"
+    }), karas.createElement(Enemy, {
+      ref: "enemy"
+    }), karas.createElement(Grass, {
+      ref: "grass"
+    }), karas.createElement(Fade, {
+      ref: "fade"
+    }), karas.createElement(Item, {
+      ref: "item"
+    }), karas.createElement(Bullet, {
+      ref: "bullet"
+    }), karas.createElement(Boom, {
+      ref: "boom"
+    }), karas.createElement(Hit, {
+      ref: "hit"
+    }), karas.createElement(Status, {
+      ref: "status"
+    }), karas.createElement(Menu, {
+      ref: "menu"
+    }), karas.createElement(StageNum, {
+      ref: "stageNum"
+    }), karas.createElement(GameOver, {
+      ref: "gameOver"
+    })), '#canvas');
+    document.querySelector('#tc input').checked = false;
+    document.querySelector('#ts input').checked = true;
+  } else {
+    root = karas.render(karas.createElement("canvas", {
+      width: 600,
+      height: 600,
+      cache: "1"
+    }, karas.createElement(Box, {
+      ref: "box"
+    }), karas.createElement(Brick, {
+      ref: "brick"
+    }), karas.createElement(Brick$1, {
+      ref: "iron"
+    }), karas.createElement(Player, {
+      ref: "player"
+    }), karas.createElement(Enemy, {
+      ref: "enemy"
+    }), karas.createElement(Grass, {
+      ref: "grass"
+    }), karas.createElement(Fade, {
+      ref: "fade"
+    }), karas.createElement(Item, {
+      ref: "item"
+    }), karas.createElement(Bullet, {
+      ref: "bullet"
+    }), karas.createElement(Boom, {
+      ref: "boom"
+    }), karas.createElement(Hit, {
+      ref: "hit"
+    }), karas.createElement(Status, {
+      ref: "status"
+    }), karas.createElement(Menu, {
+      ref: "menu"
+    }), karas.createElement(StageNum, {
+      ref: "stageNum"
+    }), karas.createElement(GameOver, {
+      ref: "gameOver"
+    })), '#canvas');
+    document.querySelector('#tc input').checked = true;
+    document.querySelector('#ts input').checked = false;
+  }
+
+  document.querySelector('#tc').onclick = function () {
+    location.hash = 'canvas';
+    location.reload(true);
+  };
+
+  document.querySelector('#ts').onclick = function () {
+    location.hash = 'svg';
+    location.reload(true);
+  };
+
   document.addEventListener('keydown', function (e) {
     var keyCode = e.keyCode; // console.warn(e.keyCode, eventBus.gameState);
     // 菜单进入，快速进入完毕

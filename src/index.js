@@ -16,26 +16,65 @@ import eventBus from './eventBus';
 import Grass from './Grass';
 import Sound from './Sound';
 
-let root = karas.render(
-  <canvas width={600} height={600} cache="1">
-    <Box ref="box" />
-    <Brick ref="brick" />
-    <Iron ref="iron" />
-    <Player ref="player" />
-    <Enemy ref="enemy" />
-    <Grass ref="grass" />
-    <Fade ref="fade" />
-    <Item ref="item"/>
-    <Bullet ref="bullet" />
-    <Boom ref="boom" />
-    <Hit ref="hit" />
-    <Status ref="status"/>
-    <Menu ref="menu" />
-    <StageNum ref="stageNum" />
-    <GameOver ref="gameOver" />
-  </canvas>,
-  '#canvas'
-);
+let type = location.hash; console.log(type);
+let root;
+if(type === '#svg' || type === 'svg') {
+  root = karas.render(
+    <svg width={600} height={600}>
+      <Box ref="box" />
+      <Brick ref="brick" />
+      <Iron ref="iron" />
+      <Player ref="player" />
+      <Enemy ref="enemy" />
+      <Grass ref="grass" />
+      <Fade ref="fade" />
+      <Item ref="item"/>
+      <Bullet ref="bullet" />
+      <Boom ref="boom" />
+      <Hit ref="hit" />
+      <Status ref="status"/>
+      <Menu ref="menu" />
+      <StageNum ref="stageNum" />
+      <GameOver ref="gameOver" />
+    </svg>,
+    '#canvas'
+  );
+  document.querySelector('#tc input').checked = false;
+  document.querySelector('#ts input').checked = true;
+}
+else {
+  root = karas.render(
+    <canvas width={600} height={600} cache="1">
+      <Box ref="box" />
+      <Brick ref="brick" />
+      <Iron ref="iron" />
+      <Player ref="player" />
+      <Enemy ref="enemy" />
+      <Grass ref="grass" />
+      <Fade ref="fade" />
+      <Item ref="item"/>
+      <Bullet ref="bullet" />
+      <Boom ref="boom" />
+      <Hit ref="hit" />
+      <Status ref="status"/>
+      <Menu ref="menu" />
+      <StageNum ref="stageNum" />
+      <GameOver ref="gameOver" />
+    </canvas>,
+    '#canvas'
+  );
+  document.querySelector('#tc input').checked = true;
+  document.querySelector('#ts input').checked = false;
+}
+
+document.querySelector('#tc').onclick = function() {
+  location.hash = 'canvas';
+  location.reload(true);
+}
+document.querySelector('#ts').onclick = function() {
+  location.hash = 'svg';
+  location.reload(true);
+}
 
 document.addEventListener('keydown', function (e) {
   let keyCode = e.keyCode;
