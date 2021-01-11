@@ -1267,15 +1267,16 @@
         var _this2 = this;
 
         // 开始游戏
-        eventBus.on(eventBus.WILL_GAME, function () {
+        eventBus.on(eventBus.WILL_GAME, function () {// let list = data.current.player;
+          // this.setState({
+          //   list,
+          // });
+        });
+        eventBus.on(eventBus.GAMEING, function () {
           var list = data.current.player;
 
           _this2.setState({
-            list: list
-          });
-        });
-        eventBus.on(eventBus.GAMEING, function () {
-          _this2.setState({
+            list: list,
             show: true
           }, function () {
             _this2.state.list.forEach(function (item, i) {

@@ -18,13 +18,15 @@ class Player extends karas.Component {
   componentDidMount() {
     // 开始游戏
     eventBus.on(eventBus.WILL_GAME, () => {
+      // let list = data.current.player;
+      // this.setState({
+      //   list,
+      // });
+    });
+    eventBus.on(eventBus.GAMEING, () => {
       let list = data.current.player;
       this.setState({
         list,
-      });
-    });
-    eventBus.on(eventBus.GAMEING, () => {
-      this.setState({
         show: true,
       }, () => {
         this.state.list.forEach((item, i) => {
